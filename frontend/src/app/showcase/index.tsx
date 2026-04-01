@@ -2,6 +2,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ButtonShowcase } from "@/components/button-showcase";
+import { IconShowcase } from "@/components/icon-showcase";
 import { ModalShowcase } from "@/components/modal-showcase";
 import { InputShowcase } from "@/components/input-showcase";
 import { COLORS } from "@/constants/colors";
@@ -14,18 +15,26 @@ export default function Showcase() {
         bounces={false}
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex flex-row gap-5">
-          <View>
-          <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Buttons</Text>
-          <ButtonShowcase />
+        <View className="flex gap-5">
+          <View className="flex flex-row gap-5">
+            <View>
+            <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Buttons</Text>
+            <ButtonShowcase />
+            </View>
+            <View>
+            <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Modal</Text>
+            <ModalShowcase />
+            </View>
+            <View>
+            <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Icons</Text>
+            <IconShowcase />
+            </View>
           </View>
-          <View>
-          <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Modal</Text>
-          <ModalShowcase />
-          </View>
-          <View>
-          <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Input Field</Text>
-          <InputShowcase />
+          <View className="flex flex-row gap-5">
+            <View>
+            <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Input Field</Text>
+            <InputShowcase />
+            </View>
           </View>
         </View>
       </ScrollView>

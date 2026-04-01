@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingHorizontal: 20,
     paddingVertical: 20,
-    width: "100%",
+    width: 500,
   },
   stack: {
     gap: 16,
