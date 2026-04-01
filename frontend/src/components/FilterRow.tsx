@@ -8,6 +8,7 @@ interface FilterRowProps {
   secureTextEntry?: boolean;
   value?: string;
   onChangeText?: (text: string) => void;
+  error?: string | null;
 }
 
 // ── Filter Row ────────────────────────────────────────────────────────────────
@@ -17,6 +18,7 @@ const FilterRow = ({
   secureTextEntry = false,
   value,
   onChangeText,
+  error = null,
 }: FilterRowProps) => {
   const [localValue, setLocalValue] = useState(value ?? '');
 
@@ -31,7 +33,11 @@ const FilterRow = ({
       <Text className="text-[#c8cedd] text-xs mb-2 tracking-wide">{label}</Text>
 
       {/* Input */}
-      <View className="bg-[#21263f] border border-[#565f7e] rounded-l px-4 h-12 flex-row items-center">
+      <View
+        className={`bg-[#21263f] border ${
+          error ? 'border-[#ff4d4f]' : 'border-[#565f7e]'
+        } rounded-l px-4 h-12 flex-row items-center`}
+      >
         <TextInput
           value={localValue}
           onChangeText={handleChange}
@@ -45,6 +51,10 @@ const FilterRow = ({
           accessibilityLabel={label}
         />
       </View>
+
+      {error ? (
+        <Text className="text-[#ff4d4f] text-xs mt-1">{error}</Text>
+      ) : null}
     </View>
   );
 };

@@ -11,6 +11,28 @@ export class AuthService {
   async register(dto: RegisterDto) {
     const supabase = this.supabaseService.getClient();
 
+    // Validate: check if email already exists in profiles
+    try {
+      const { data: existing, error: existingError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', dto.email)
+        .maybeSingle();
+
+      if (existingError) {
+        this.logger.error('Error checking existing email:', existingError.message);
+        throw new BadRequestException(`Database error: ${existingError.message}`);
+      }
+
+      if (existing) {
+        this.logger.log('Attempt to register with existing email:', dto.email);
+        throw new BadRequestException('Email already exists');
+      }
+    } catch (err) {
+      // Re-throw to be handled by outer catch
+      throw err;
+    }
+
     try {
       this.logger.log('Starting signup for:', dto.email);
       
