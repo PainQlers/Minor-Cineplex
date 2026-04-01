@@ -2,9 +2,12 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ButtonShowcase } from "@/components/button-showcase";
+import { AlertShowcase } from "@/components/alert-showcase";
 import { IconShowcase } from "@/components/icon-showcase";
 import { ModalShowcase } from "@/components/modal-showcase";
 import { InputShowcase } from "@/components/input-showcase";
+import { TabShowcase } from "@/components/tab-showcase";
+import { TextAreaShowcase } from "@/components/text-area-showcase";
 import { COLORS } from "@/constants/colors";
 import { TYPOGRAPHY } from "@/constants/typography";
 
@@ -34,6 +37,20 @@ export default function Showcase() {
             <View>
             <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Input Field</Text>
             <InputShowcase />
+            </View>
+            <View>
+            <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Text Area</Text>
+            <TextAreaShowcase />
+            </View>
+            <View>
+            <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Tab</Text>
+            <TabShowcase />
+            <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Alert</Text>
+            <AlertShowcase />
+            </View>
+          </View>
+          <View className="flex flex-row gap-5">
+            <View>
             </View>
           </View>
         </View>
