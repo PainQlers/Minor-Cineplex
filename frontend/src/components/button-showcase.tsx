@@ -1,124 +1,124 @@
-import { ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  type TextStyle,
+  type ViewStyle,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { COLORS } from "../constants/colors";
-import {
-  ShowcaseButton,
-  type ShowcaseButtonPreset,
-} from "./ui/showcase-button";
-import { ShowcaseLink, type ShowcaseLinkPreset } from "./ui/showcase-link";
+import { TYPOGRAPHY } from "../constants/typography";
+import { AppButton, type AppButtonVariant } from "./ui/button";
 
-interface ShowcaseRow {
+interface ButtonCell {
+  disabled?: boolean;
   id: string;
-  filled: ShowcaseButtonPreset;
-  outline: ShowcaseButtonPreset;
-  text: ShowcaseLinkPreset;
+  labelStyle?: TextStyle;
+  style?: ViewStyle;
+  usage: string;
+  variant: AppButtonVariant;
+}
+
+interface ButtonRow {
+  id: string;
+  cells: [ButtonCell, ButtonCell, ButtonCell];
 }
 
 const BUTTON_LABEL = "Button";
 
-const SHOWCASE_ROWS: ShowcaseRow[] = [
+const BUTTON_ROWS: ButtonRow[] = [
   {
+    cells: [
+      {
+        id: "primary-solid",
+        usage: '<AppButton label="Buy Tickets" variant="primary" />',
+        variant: "primary",
+      },
+      {
+        id: "primary-outline",
+        usage: '<AppButton label="View Details" variant="outline" />',
+        variant: "outline",
+      },
+      {
+        id: "primary-link",
+        usage: '<AppButton label="See Terms" variant="link" />',
+        variant: "link",
+      },
+    ],
     id: "primary",
-    filled: {
-      containerStyle: {
-        backgroundColor: COLORS.brand.blue100,
-      },
-      labelStyle: {
-        color: COLORS.text.primary,
-      },
-    },
-    outline: {
-      containerStyle: {
-        borderColor: COLORS.base.gray300,
-        borderWidth: 1,
-      },
-      labelStyle: {
-        color: COLORS.text.primary,
-      },
-    },
-    text: {
-      labelStyle: {
-        color: COLORS.text.primary,
-      },
-    },
   },
   {
+    cells: [
+      {
+        id: "secondary-solid",
+        usage: '<AppButton label="Watch Trailer" variant="secondary" />',
+        variant: "secondary",
+      },
+      {
+        id: "secondary-neutral",
+        style: { backgroundColor: COLORS.base.gray300, borderWidth: 0 },
+        usage: '<AppButton label="More Info" variant="outline" />',
+        variant: "outline",
+      },
+      {
+        id: "secondary-link",
+        labelStyle: { color: COLORS.text.secondary },
+        usage: '<AppButton label="Read More" variant="link" />',
+        variant: "link",
+      },
+    ],
     id: "secondary",
-    filled: {
-      containerStyle: {
-        backgroundColor: COLORS.brand.blue200,
-      },
-      labelStyle: {
-        color: COLORS.text.primary,
-      },
-    },
-    outline: {
-      containerStyle: {
-        backgroundColor: COLORS.base.gray300,
-      },
-      labelStyle: {
-        color: COLORS.text.primary,
-      },
-    },
-    text: {
-      labelStyle: {
-        color: COLORS.text.secondary,
-      },
-    },
   },
   {
+    cells: [
+      {
+        id: "dark-solid",
+        style: { backgroundColor: COLORS.brand.blue300 },
+        usage: '<AppButton label="Reserve Seat" variant="secondary" />',
+        variant: "secondary",
+      },
+      {
+        id: "dark-neutral",
+        style: { backgroundColor: COLORS.base.gray200, borderWidth: 0 },
+        usage: '<AppButton label="Select Time" variant="outline" />',
+        variant: "outline",
+      },
+      {
+        id: "dark-link",
+        labelStyle: { color: COLORS.text.muted },
+        usage: '<AppButton label="View Policy" variant="link" />',
+        variant: "link",
+      },
+    ],
     id: "dark",
-    filled: {
-      containerStyle: {
-        backgroundColor: COLORS.brand.blue300,
-      },
-      labelStyle: {
-        color: COLORS.text.primary,
-      },
-    },
-    outline: {
-      containerStyle: {
-        backgroundColor: COLORS.base.gray200,
-      },
-      labelStyle: {
-        color: COLORS.text.primary,
-      },
-    },
-    text: {
-      labelStyle: {
-        color: COLORS.text.muted,
-      },
-    },
   },
   {
+    cells: [
+      {
+        disabled: true,
+        id: "disabled-solid",
+        usage: '<AppButton disabled label="Buy Tickets" variant="primary" />',
+        variant: "primary",
+      },
+      {
+        disabled: true,
+        id: "disabled-outline",
+        labelStyle: { color: COLORS.text.secondary },
+        usage: '<AppButton disabled label="View Details" variant="outline" />',
+        variant: "outline",
+      },
+      {
+        disabled: true,
+        id: "disabled-link",
+        labelStyle: { color: COLORS.text.inverse },
+        usage: '<AppButton disabled label="See Terms" variant="link" />',
+        variant: "link",
+      },
+    ],
     id: "disabled",
-    filled: {
-      containerStyle: {
-        backgroundColor: COLORS.brand.blue100,
-        opacity: 0.4,
-      },
-      disabled: true,
-      labelStyle: {
-        color: COLORS.text.primary,
-      },
-    },
-    outline: {
-      containerStyle: {
-        borderColor: COLORS.base.gray300,
-        borderWidth: 1,
-        opacity: 0.4,
-      },
-      disabled: true,
-      labelStyle: {
-        color: COLORS.text.secondary,
-      },
-    },
-    text: {
-      labelStyle: {
-        color: COLORS.text.inverse,
-      },
-    },
   },
 ];
 
@@ -127,10 +127,7 @@ export function ButtonShowcase() {
   const isCompact = width < 420;
 
   return (
-    <SafeAreaView className="flex-1" style={styles.screen}>
-      <View pointerEvents="none" style={styles.blueGlow} />
-      <View pointerEvents="none" style={styles.purpleGlow} />
-
+    <SafeAreaView className="flex-1">
       <ScrollView
         bounces={false}
         contentContainerStyle={styles.scrollContent}
@@ -138,22 +135,26 @@ export function ButtonShowcase() {
       >
         <View
           className="w-full rounded-[20px] border-2 px-6 py-8"
-          style={styles.card}
+          style={styles.matrixCard}
         >
           <View style={styles.rows}>
-            {SHOWCASE_ROWS.map((row) => (
-              <View
-                key={row.id}
-                style={isCompact ? styles.rowCompact : styles.rowWide}
-              >
-                <View style={styles.buttonPair}>
-                  <ShowcaseButton label={BUTTON_LABEL} preset={row.filled} />
-                  <ShowcaseButton label={BUTTON_LABEL} preset={row.outline} />
-                </View>
-
-                <View style={isCompact ? styles.linkCompact : styles.linkWide}>
-                  <ShowcaseLink label={BUTTON_LABEL} preset={row.text} />
-                </View>
+            {BUTTON_ROWS.map((row) => (
+              <View key={row.id} style={isCompact ? styles.rowCompact : styles.rowWide}>
+                {row.cells.map((cell, index) => (
+                  <View
+                    key={cell.id}
+                    style={index === 2 ? styles.linkCell : styles.buttonCell}
+                  >
+                    <Text style={[TYPOGRAPHY.body3, styles.cellUsage]}>{cell.usage}</Text>
+                    <AppButton
+                      disabled={cell.disabled}
+                      label={BUTTON_LABEL}
+                      labelStyle={cell.labelStyle}
+                      style={cell.style}
+                      variant={cell.variant}
+                    />
+                  </View>
+                ))}
               </View>
             ))}
           </View>
@@ -164,61 +165,36 @@ export function ButtonShowcase() {
 }
 
 const styles = StyleSheet.create({
-  blueGlow: {
-    backgroundColor: COLORS.brand.blue100,
-    borderRadius: 140,
-    height: 280,
-    opacity: 0.12,
-    position: "absolute",
-    right: -80,
-    top: -100,
-    width: 280,
+  buttonCell: {
+    width: 176,
   },
-  buttonPair: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 16,
+  cellUsage: {
+    color: COLORS.text.muted,
+    textAlign: "center",
   },
-  card: {
+  linkCell: {
+    width: 96,
+  },
+  matrixCard: {
     alignSelf: "center",
     backgroundColor: COLORS.surface.panel,
     borderColor: COLORS.base.gray300,
     maxWidth: 547,
   },
-  linkCompact: {
-    alignItems: "flex-end",
-  },
-  linkWide: {
-    justifyContent: "center",
-    marginLeft: "auto",
-  },
-  purpleGlow: {
-    backgroundColor: COLORS.brand.blue200,
-    borderRadius: 120,
-    bottom: -80,
-    height: 240,
-    left: -60,
-    opacity: 0.1,
-    position: "absolute",
-    width: 240,
-  },
   rowCompact: {
-    gap: 12,
+    gap: 16,
   },
   rowWide: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 16,
-  },
-  screen: {
-    backgroundColor: COLORS.surface.canvas,
+    justifyContent: "space-between",
   },
   rows: {
     gap: 24,
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: "center",
+    gap: 16,
     paddingHorizontal: 20,
     paddingVertical: 32,
   },
