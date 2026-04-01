@@ -138,6 +138,7 @@ export function ButtonShowcase() {
                 style={index === 2 ? styles.linkCell : styles.buttonCell}
               >
                 <Text style={[TYPOGRAPHY.body3, styles.cellUsage]}>{cell.usage}</Text>
+
                 <AppButton
                   disabled={cell.disabled}
                   label={BUTTON_LABEL}

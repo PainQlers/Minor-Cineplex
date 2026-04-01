@@ -8,13 +8,14 @@ import { ModalShowcase } from "@/components/modal-showcase";
 import { InputShowcase } from "@/components/input-showcase";
 import { TabShowcase } from "@/components/tab-showcase";
 import { TextAreaShowcase } from "@/components/text-area-showcase";
+import { StepShowcase } from "@/components/step-showcase";
 import { COLORS } from "@/constants/colors";
 import { TYPOGRAPHY } from "@/constants/typography";
 
 export default function Showcase() {
   return (
       <ScrollView
-        className="flex-1 flex-row items-start m-5 gap-3 justify-evenly"
+        className="flex-1 items-start m-5 gap-3 justify-evenly"
         bounces={false}
         showsVerticalScrollIndicator={false}
       >
@@ -45,12 +46,17 @@ export default function Showcase() {
             <View>
             <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Tab</Text>
             <TabShowcase />
-            <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Alert</Text>
-            <AlertShowcase />
+            <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Step</Text>
+            <StepShowcase />
             </View>
           </View>
           <View className="flex flex-row gap-5">
             <View>
+            <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>Alert</Text>
+            <AlertShowcase />
+            </View>
+            <View>
+            
             </View>
           </View>
         </View>
