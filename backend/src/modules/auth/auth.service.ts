@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { SupabaseService } from '@/libs/supabase/supabase.service';
 import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -34,22 +35,34 @@ export class AuthService {
       const userId = signUpData.user.id;
       this.logger.log('User created in auth.users with ID:', userId);
 
-      // 🧾 2. สร้าง profile ด้วย real user ID จาก auth.users
-      this.logger.log('Creating profile for user:', userId);
-      const { data: profileData, error: profileError } = await supabase
+      // Use upsert to create or update profile (handles missing profile row)
+      this.logger.log('Upserting profile for user:', userId);
+
+      // Try insert first; if duplicate key (race) then update existing row
+      const { data: insertedProfile, error: insertError } = await supabase
         .from('profiles')
-        .insert({
-          id: userId,
-          email: dto.email,
-          name: dto.name,
-        })
+        .insert({ id: userId, email: dto.email, name: dto.name })
         .select();
 
-      this.logger.log('Profile insert response:', JSON.stringify({ profileData, profileError }, null, 2));
+      this.logger.log('Profile insert response:', JSON.stringify({ insertedProfile, insertError }, null, 2));
 
-      if (profileError) {
-        this.logger.error('Profile insert error:', profileError.message);
-        throw new BadRequestException(`Database error: ${profileError.message}`);
+      if (insertError) {
+        const msg = insertError?.message || '';
+        if (msg.includes('duplicate key')) {
+          this.logger.log('Duplicate key on insert, trying update for user:', userId);
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ name: dto.name, email: dto.email })
+            .eq('id', userId);
+
+          if (updateError) {
+            this.logger.error('Profile update fallback error:', updateError.message);
+            throw new BadRequestException(`Database error: ${updateError.message}`);
+          }
+        } else {
+          this.logger.error('Profile insert error:', msg);
+          throw new BadRequestException(`Database error: ${msg}`);
+        }
       }
 
       return {
@@ -66,4 +79,53 @@ export class AuthService {
       throw error;
     }
   }
+
+  async login(dto: LoginDto) {
+    const supabase = this.supabaseService.getClient();
+
+    try {
+      this.logger.log('Starting login for:', dto.email);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: dto.email,
+        password: dto.password,
+      });
+
+      this.logger.log('SignIn response:', JSON.stringify({ session: data?.session, user: data?.user }, null, 2));
+
+      if (error) {
+        this.logger.error('SignIn error:', error.message);
+        throw new BadRequestException(`Auth error: ${error.message}`);
+      }
+
+      const session = data.session;
+      const user = data.user;
+
+      let profile: { id: string; email: string; name: string | null } | null = null;
+      if (user?.id) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, email, name')
+          .eq('id', user.id)
+          .single();
+
+        if (profileError) {
+          this.logger.log('Profile fetch warning:', profileError.message);
+        } else {
+          profile = profileData;
+        }
+      }
+
+      return {
+        status: 'success',
+        message: 'Logged in successfully',
+        session,
+        user: profile || { id: user?.id, email: user?.email, name: null },
+      };
+    } catch (error) {
+      this.logger.error('Login error:', error);
+      throw error;
+    }
+  }
+
 }
