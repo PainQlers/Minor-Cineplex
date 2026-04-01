@@ -35,14 +35,6 @@ export function AppAlert({
 }: AppAlertProps) {
   return (
     <View style={[styles.container, VARIANT_STYLES[variant], style]}>
-      <Pressable
-        accessibilityLabel="Close alert"
-        accessibilityRole="button"
-        onPress={onClose}
-        style={styles.closeButton}
-      >
-        <AppIcon icon={CloseRoundLightIcon} size={24} />
-      </Pressable>
 
       <View style={styles.content}>
         <Text style={[TYPOGRAPHY.body1Medium, styles.title]}>{title}</Text>
@@ -53,6 +45,14 @@ export function AppAlert({
           </Text>
         )}
       </View>
+      <Pressable
+        accessibilityLabel="Close alert"
+        accessibilityRole="button"
+        onPress={onClose}
+        style={styles.closeButton}
+      >
+        <AppIcon icon={CloseRoundLightIcon} size={24} />
+      </Pressable>
     </View>
   );
 }
