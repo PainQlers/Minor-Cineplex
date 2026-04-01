@@ -6,6 +6,8 @@ import {
   type ViewStyle,
 } from "react-native";
 
+import { TYPOGRAPHY } from "../../constants/typography";
+
 const noop = () => {};
 
 export interface ShowcaseButtonPreset {
@@ -34,7 +36,7 @@ export function ShowcaseButton({
       className="items-center justify-center"
       style={[styles.button, preset.containerStyle]}
     >
-      <Text className="text-base font-bold" style={[styles.label, preset.labelStyle]}>
+      <Text style={[TYPOGRAPHY.button, preset.labelStyle]}>
         {label}
       </Text>
     </Pressable>
@@ -48,8 +50,5 @@ const styles = StyleSheet.create({
     minWidth: 123,
     paddingHorizontal: 40,
     paddingVertical: 12,
-  },
-  label: {
-    fontSize: 16,
   },
 });

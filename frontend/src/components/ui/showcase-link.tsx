@@ -1,5 +1,7 @@
 import { Pressable, StyleSheet, Text, type TextStyle } from "react-native";
 
+import { TYPOGRAPHY } from "../../constants/typography";
+
 const noop = () => {};
 
 export interface ShowcaseLinkPreset {
@@ -26,7 +28,7 @@ export function ShowcaseLink({
       onPress={onPress}
       className="min-h-6 items-end justify-center self-end"
     >
-      <Text className="text-base font-bold" style={[styles.label, preset.labelStyle]}>
+      <Text style={[TYPOGRAPHY.button, styles.label, preset.labelStyle]}>
         {label}
       </Text>
     </Pressable>
@@ -35,7 +37,6 @@ export function ShowcaseLink({
 
 const styles = StyleSheet.create({
   label: {
-    fontSize: 16,
     textDecorationLine: "underline",
   },
 });
