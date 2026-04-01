@@ -4,6 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 
 import { FONT_ASSETS } from "../constants/fonts";
+import "../global.css";
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   // Ignore if the splash screen was already prevented/hidden.
