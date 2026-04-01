@@ -1,6 +1,7 @@
 import { ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { COLORS } from "../constants/colors";
 import {
   ShowcaseButton,
   type ShowcaseButtonPreset,
@@ -21,24 +22,24 @@ const SHOWCASE_ROWS: ShowcaseRow[] = [
     id: "primary",
     filled: {
       containerStyle: {
-        backgroundColor: "#4E7BEE",
+        backgroundColor: COLORS.brand.blue100,
       },
       labelStyle: {
-        color: "#FFFFFF",
+        color: COLORS.text.primary,
       },
     },
     outline: {
       containerStyle: {
-        borderColor: "#8B93B0",
+        borderColor: COLORS.base.gray300,
         borderWidth: 1,
       },
       labelStyle: {
-        color: "#FFFFFF",
+        color: COLORS.text.primary,
       },
     },
     text: {
       labelStyle: {
-        color: "#FFFFFF",
+        color: COLORS.text.primary,
       },
     },
   },
@@ -46,23 +47,23 @@ const SHOWCASE_ROWS: ShowcaseRow[] = [
     id: "secondary",
     filled: {
       containerStyle: {
-        backgroundColor: "#1E29A8",
+        backgroundColor: COLORS.brand.blue200,
       },
       labelStyle: {
-        color: "#FFFFFF",
+        color: COLORS.text.primary,
       },
     },
     outline: {
       containerStyle: {
-        backgroundColor: "#8B93B0",
+        backgroundColor: COLORS.base.gray300,
       },
       labelStyle: {
-        color: "#FFFFFF",
+        color: COLORS.text.primary,
       },
     },
     text: {
       labelStyle: {
-        color: "#C8CEDD",
+        color: COLORS.text.secondary,
       },
     },
   },
@@ -70,23 +71,23 @@ const SHOWCASE_ROWS: ShowcaseRow[] = [
     id: "dark",
     filled: {
       containerStyle: {
-        backgroundColor: "#0C1580",
+        backgroundColor: COLORS.brand.blue300,
       },
       labelStyle: {
-        color: "#FFFFFF",
+        color: COLORS.text.primary,
       },
     },
     outline: {
       containerStyle: {
-        backgroundColor: "#565F7E",
+        backgroundColor: COLORS.base.gray200,
       },
       labelStyle: {
-        color: "#FFFFFF",
+        color: COLORS.text.primary,
       },
     },
     text: {
       labelStyle: {
-        color: "#8B93B0",
+        color: COLORS.text.muted,
       },
     },
   },
@@ -94,28 +95,28 @@ const SHOWCASE_ROWS: ShowcaseRow[] = [
     id: "disabled",
     filled: {
       containerStyle: {
-        backgroundColor: "#4E7BEE",
+        backgroundColor: COLORS.brand.blue100,
         opacity: 0.4,
       },
       disabled: true,
       labelStyle: {
-        color: "#FFFFFF",
+        color: COLORS.text.primary,
       },
     },
     outline: {
       containerStyle: {
-        borderColor: "#8B93B0",
+        borderColor: COLORS.base.gray300,
         borderWidth: 1,
         opacity: 0.4,
       },
       disabled: true,
       labelStyle: {
-        color: "#C8CEDD",
+        color: COLORS.text.secondary,
       },
     },
     text: {
       labelStyle: {
-        color: "#21263F",
+        color: COLORS.text.inverse,
       },
     },
   },
@@ -126,7 +127,7 @@ export function ButtonShowcase() {
   const isCompact = width < 420;
 
   return (
-    <SafeAreaView className="flex-1 bg-[#050816]">
+    <SafeAreaView className="flex-1" style={styles.screen}>
       <View pointerEvents="none" style={styles.blueGlow} />
       <View pointerEvents="none" style={styles.purpleGlow} />
 
@@ -136,7 +137,7 @@ export function ButtonShowcase() {
         showsVerticalScrollIndicator={false}
       >
         <View
-          className="w-full rounded-[20px] border-2 border-[#BB97D8] bg-[#0F1631] px-6 py-8"
+          className="w-full rounded-[20px] border-2 px-6 py-8"
           style={styles.card}
         >
           <View style={styles.rows}>
@@ -164,7 +165,7 @@ export function ButtonShowcase() {
 
 const styles = StyleSheet.create({
   blueGlow: {
-    backgroundColor: "#4E7BEE",
+    backgroundColor: COLORS.brand.blue100,
     borderRadius: 140,
     height: 280,
     opacity: 0.12,
@@ -180,6 +181,8 @@ const styles = StyleSheet.create({
   },
   card: {
     alignSelf: "center",
+    backgroundColor: COLORS.surface.panel,
+    borderColor: COLORS.base.gray300,
     maxWidth: 547,
   },
   linkCompact: {
@@ -190,7 +193,7 @@ const styles = StyleSheet.create({
     marginLeft: "auto",
   },
   purpleGlow: {
-    backgroundColor: "#BB97D8",
+    backgroundColor: COLORS.brand.blue200,
     borderRadius: 120,
     bottom: -80,
     height: 240,
@@ -206,6 +209,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: 16,
+  },
+  screen: {
+    backgroundColor: COLORS.surface.canvas,
   },
   rows: {
     gap: 24,
