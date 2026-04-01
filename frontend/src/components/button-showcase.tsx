@@ -1,5 +1,4 @@
 import {
-  ScrollView,
   StyleSheet,
   Text,
   type TextStyle,
@@ -7,7 +6,6 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { COLORS } from "../constants/colors";
 import { TYPOGRAPHY } from "../constants/typography";
@@ -34,17 +32,17 @@ const BUTTON_ROWS: ButtonRow[] = [
     cells: [
       {
         id: "primary-solid",
-        usage: '<AppButton label="Buy Tickets" variant="primary" />',
+        usage: '<AppButton label="Button" variant="primary" />',
         variant: "primary",
       },
       {
         id: "primary-outline",
-        usage: '<AppButton label="View Details" variant="outline" />',
+        usage: '<AppButton label="Button" variant="outline" />',
         variant: "outline",
       },
       {
         id: "primary-link",
-        usage: '<AppButton label="See Terms" variant="link" />',
+        usage: '<AppButton label="Button" variant="link" />',
         variant: "link",
       },
     ],
@@ -54,19 +52,19 @@ const BUTTON_ROWS: ButtonRow[] = [
     cells: [
       {
         id: "secondary-solid",
-        usage: '<AppButton label="Watch Trailer" variant="secondary" />',
+        usage: '<AppButton label="Button" variant="secondary" />',
         variant: "secondary",
       },
       {
         id: "secondary-neutral",
         style: { backgroundColor: COLORS.base.gray300, borderWidth: 0 },
-        usage: '<AppButton label="More Info" variant="outline" />',
+        usage: '<AppButton label="Button" variant="outline" />',
         variant: "outline",
       },
       {
         id: "secondary-link",
         labelStyle: { color: COLORS.text.secondary },
-        usage: '<AppButton label="Read More" variant="link" />',
+        usage: '<AppButton label="Button" variant="link" />',
         variant: "link",
       },
     ],
@@ -77,19 +75,19 @@ const BUTTON_ROWS: ButtonRow[] = [
       {
         id: "dark-solid",
         style: { backgroundColor: COLORS.brand.blue300 },
-        usage: '<AppButton label="Reserve Seat" variant="secondary" />',
+        usage: '<AppButton label="Button" variant="secondary" />',
         variant: "secondary",
       },
       {
         id: "dark-neutral",
         style: { backgroundColor: COLORS.base.gray200, borderWidth: 0 },
-        usage: '<AppButton label="Select Time" variant="outline" />',
+        usage: '<AppButton label="Button" variant="outline" />',
         variant: "outline",
       },
       {
         id: "dark-link",
         labelStyle: { color: COLORS.text.muted },
-        usage: '<AppButton label="View Policy" variant="link" />',
+        usage: '<AppButton label="Button" variant="link" />',
         variant: "link",
       },
     ],
@@ -100,21 +98,21 @@ const BUTTON_ROWS: ButtonRow[] = [
       {
         disabled: true,
         id: "disabled-solid",
-        usage: '<AppButton disabled label="Buy Tickets" variant="primary" />',
+        usage: '<AppButton disabled label="Button" variant="primary" />',
         variant: "primary",
       },
       {
         disabled: true,
         id: "disabled-outline",
         labelStyle: { color: COLORS.text.secondary },
-        usage: '<AppButton disabled label="View Details" variant="outline" />',
+        usage: '<AppButton disabled label="Button" variant="outline" />',
         variant: "outline",
       },
       {
         disabled: true,
         id: "disabled-link",
         labelStyle: { color: COLORS.text.inverse },
-        usage: '<AppButton disabled label="See Terms" variant="link" />',
+        usage: '<AppButton disabled label="Button" variant="link" />',
         variant: "link",
       },
     ],
@@ -127,40 +125,32 @@ export function ButtonShowcase() {
   const isCompact = width < 420;
 
   return (
-    <SafeAreaView className="flex-1">
-      <ScrollView
-        bounces={false}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View
-          className="w-full rounded-[20px] border-2 px-6 py-8"
-          style={styles.matrixCard}
-        >
-          <View style={styles.rows}>
-            {BUTTON_ROWS.map((row) => (
-              <View key={row.id} style={isCompact ? styles.rowCompact : styles.rowWide}>
-                {row.cells.map((cell, index) => (
-                  <View
-                    key={cell.id}
-                    style={index === 2 ? styles.linkCell : styles.buttonCell}
-                  >
-                    <Text style={[TYPOGRAPHY.body3, styles.cellUsage]}>{cell.usage}</Text>
-                    <AppButton
-                      disabled={cell.disabled}
-                      label={BUTTON_LABEL}
-                      labelStyle={cell.labelStyle}
-                      style={cell.style}
-                      variant={cell.variant}
-                    />
-                  </View>
-                ))}
+    <View
+      className="w-full rounded-[20px] border-2 px-6 py-8 self-center"
+      style={styles.matrixCard}
+    >
+      <View style={styles.rows}>
+        {BUTTON_ROWS.map((row) => (
+          <View key={row.id} style={isCompact ? styles.rowCompact : styles.rowWide}>
+            {row.cells.map((cell, index) => (
+              <View
+                key={cell.id}
+                style={index === 2 ? styles.linkCell : styles.buttonCell}
+              >
+                <Text style={[TYPOGRAPHY.body3, styles.cellUsage]}>{cell.usage}</Text>
+                <AppButton
+                  disabled={cell.disabled}
+                  label={BUTTON_LABEL}
+                  labelStyle={cell.labelStyle}
+                  style={cell.style}
+                  variant={cell.variant}
+                />
               </View>
             ))}
           </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        ))}
+      </View>
+    </View>
   );
 }
 
@@ -176,10 +166,9 @@ const styles = StyleSheet.create({
     width: 96,
   },
   matrixCard: {
-    alignSelf: "center",
-    backgroundColor: COLORS.surface.panel,
     borderColor: COLORS.base.gray300,
     maxWidth: 547,
+    width: "100%",
   },
   rowCompact: {
     gap: 16,
@@ -188,14 +177,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
+    gap: 24,
   },
   rows: {
     gap: 24,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    gap: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 32,
   },
 });
