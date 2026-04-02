@@ -1,11 +1,14 @@
-import React from 'react';
-import { SafeAreaView } from 'react-native';
-import Register from './screens/Register';
-import { Text, View, StyleSheet } from "react-native";
+import { Stack } from "expo-router";
 import "./../global.css";
+import { View , Text } from "react-native";
 
 export default function Index() {
   return (
-      <Register />
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View className="flex-1 items-center justify-center bg-black">
+        <Text className="text-2xl font-bold text-blue-500">Welcome to Expo Router!</Text>
+      </View>
+    </>
   );
 }
