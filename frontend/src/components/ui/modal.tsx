@@ -1,16 +1,9 @@
-import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from "react-native";
+import { Modal, Pressable, Text, View } from "react-native";
+import clsx from "clsx";
 
-import { COLORS } from "../../constants/colors";
-import { TYPOGRAPHY } from "../../constants/typography";
 import { AppButton, type AppButtonVariant } from "./button";
+import close_round_light from "@/assets/icons/close_round_light.svg";
+import { AppIcon } from "@/components/ui/icon";
 
 const noop = () => {};
 
@@ -26,7 +19,7 @@ export interface AppModalProps {
   onClose?: () => void;
   primaryAction?: AppModalAction;
   secondaryAction?: AppModalAction;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
   title: string;
   visible?: boolean;
 }
@@ -36,47 +29,66 @@ function ModalCard({
   onClose,
   primaryAction,
   secondaryAction,
-  style,
+  className,
   title,
 }: Omit<AppModalProps, "embedded" | "visible">) {
   return (
-    <View style={[styles.card, style]}>
-      <View style={styles.content}>
-        <View style={styles.header}>
+    <View
+      className={clsx(
+        "bg-surface-panel border border-base-gray200 rounded-lg max-w-[343px] w-full",
+        "shadow-lg",
+        className
+      )}
+    >
+      <View className="gap-4 px-6 py-6">
+        {/* Header */}
+        <View className="flex-row-reverse items-center justify-between">
+
           <Pressable
             accessibilityLabel="Close modal"
             accessibilityRole="button"
             disabled={!onClose}
             onPress={onClose ?? noop}
-            style={[styles.closeButton, !onClose && styles.closeButtonHidden]}
+            className={clsx(
+              "flex flex-row justify-end w-6 h-6",
+              !onClose && "opacity-80"
+            )}
           >
-            <Text style={[TYPOGRAPHY.body1Medium, styles.closeIcon]}>X</Text>
+            <AppIcon icon={close_round_light} size={24} />
           </Pressable>
+          
 
-          <Text style={[TYPOGRAPHY.headline4, styles.title]}>{title}</Text>
+          <Text className="flex-1 text-center text-text-primary font-condensedBold text-headline4">
+            {title}
+          </Text>
+          
         </View>
 
+        
+
+        {/* Description */}
         {!!description && (
-          <Text style={[TYPOGRAPHY.body2Regular, styles.description]}>
+          <Text className="text-text-secondary text-center font-condensed text-body2">
             {description}
           </Text>
         )}
 
-        <View style={styles.actions}>
-          {secondaryAction ? (
-            <AppButton
-              label={secondaryAction.label}
-              onPress={secondaryAction.onPress}
-              style={styles.actionButton}
-              variant={secondaryAction.variant ?? "outline"}
-            />
-          ) : null}
+        {/* Actions */}
+        <View className="flex-row justify-center gap-4">
           {primaryAction ? (
             <AppButton
               label={primaryAction.label}
               onPress={primaryAction.onPress}
-              style={styles.actionButton}
               variant={primaryAction.variant ?? "primary"}
+              className="flex-1"
+            />
+          ) : null}
+          {secondaryAction ? (
+            <AppButton
+              label={secondaryAction.label}
+              onPress={secondaryAction.onPress}
+              variant={secondaryAction.variant ?? "outline"}
+              className="flex-1"
             />
           ) : null}
         </View>
@@ -91,7 +103,7 @@ export function AppModal({
   onClose,
   primaryAction,
   secondaryAction,
-  style,
+  className,
   title,
   visible = false,
 }: AppModalProps) {
@@ -101,7 +113,7 @@ export function AppModal({
       onClose={onClose}
       primaryAction={primaryAction}
       secondaryAction={secondaryAction}
-      style={style}
+      className={className}
       title={title}
     />
   );
@@ -121,69 +133,9 @@ export function AppModal({
       transparent
       visible={visible}
     >
-      <View style={styles.overlay}>{card}</View>
+      <View className="flex-1 items-center justify-center px-5 bg-black/70">
+        {card}
+      </View>
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  actionButton: {
-    flex: 1,
-    minWidth: 0,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 16,
-    justifyContent: "center",
-  },
-  card: {
-    backgroundColor: COLORS.surface.panel,
-    borderColor: COLORS.base.gray200,
-    borderRadius: 8,
-    borderWidth: 1,
-    maxWidth: 343,
-    shadowColor: "#000000",
-    shadowOffset: { height: 4, width: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 30,
-    width: "100%",
-  },
-  closeButton: {
-    alignItems: "center",
-    height: 24,
-    justifyContent: "center",
-    width: 24,
-  },
-  closeButtonHidden: {
-    opacity: 0,
-  },
-  closeIcon: {
-    color: COLORS.text.secondary,
-    lineHeight: 20,
-  },
-  content: {
-    gap: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-  },
-  description: {
-    color: COLORS.text.secondary,
-    textAlign: "center",
-  },
-  header: {
-    alignItems: "center",
-    flexDirection: "row-reverse",
-    justifyContent: "space-between",
-  },
-  overlay: {
-    alignItems: "center",
-    backgroundColor: "rgba(7, 12, 27, 0.7)",
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 20,
-  },
-  title: {
-    color: COLORS.text.primary,
-    flex: 1,
-  },
-});
