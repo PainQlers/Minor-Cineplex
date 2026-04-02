@@ -158,7 +158,7 @@ export default function Login() {
               </Text>
               <Text className="text-white text-xs text-center px-1 leading-5 underline"
               onPress={() => router.push('/screens/Register')}>
-                Login
+                Register
               </Text>
             </View>
         </ScrollView>
