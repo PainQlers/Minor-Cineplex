@@ -6,9 +6,9 @@ import {
 } from "react-native";
 
 import UserDuotoneIcon from "@/assets/icons/user_duotone.svg";
-import { COLORS } from "../constants/colors";
-import { TYPOGRAPHY } from "../constants/typography";
-import { MenuLink, type MenuLinkVariant } from "./ui/menu-link";
+import { COLORS } from "../../constants/colors";
+import { TYPOGRAPHY } from "../../constants/typography";
+import { MenuLink, type MenuLinkVariant } from "../ui/menu-link";
 
 interface MenuLinkCell {
   disabled?: boolean;

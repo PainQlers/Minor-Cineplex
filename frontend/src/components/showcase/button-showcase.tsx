@@ -7,9 +7,9 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-import { COLORS } from "../constants/colors";
-import { TYPOGRAPHY } from "../constants/typography";
-import { AppButton, type AppButtonVariant } from "./ui/button";
+import { COLORS } from "../../constants/colors";
+import { TYPOGRAPHY } from "../../constants/typography";
+import { AppButton, type AppButtonVariant } from "../ui/button";
 
 interface ButtonCell {
   disabled?: boolean;

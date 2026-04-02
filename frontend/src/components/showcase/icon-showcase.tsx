@@ -25,9 +25,9 @@ import StarLightIcon from "@/assets/icons/star_light.svg";
 import TimeFillIcon from "@/assets/icons/Time_fill.svg";
 import TimeLightIcon from "@/assets/icons/time_light.svg";
 import UserDuotoneIcon from "@/assets/icons/user_duotone.svg";
-import { COLORS } from "../constants/colors";
-import { TYPOGRAPHY } from "../constants/typography";
-import { AppIcon, type AppSvgIconSource } from "./ui/icon";
+import { COLORS } from "../../constants/colors";
+import { TYPOGRAPHY } from "../../constants/typography";
+import { AppIcon, type AppSvgIconSource } from "../ui/icon";
 
 interface IconItem {
   icon: AppSvgIconSource;

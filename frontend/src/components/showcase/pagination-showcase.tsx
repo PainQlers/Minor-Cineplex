@@ -4,9 +4,9 @@ import {
   View,
 } from "react-native";
 
-import { COLORS } from "../constants/colors";
-import { TYPOGRAPHY } from "../constants/typography";
-import { AppPagination } from "./ui/pagination";
+import { COLORS } from "../../constants/colors";
+import { TYPOGRAPHY } from "../../constants/typography";
+import { AppPagination } from "../ui/pagination";
 
 export function PaginationShowcase() {
   return (

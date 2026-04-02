@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { COLORS } from "../constants/colors";
-import { TYPOGRAPHY } from "../constants/typography";
-import { AppTextArea } from "./ui/text-area";
+import { COLORS } from "../../constants/colors";
+import { TYPOGRAPHY } from "../../constants/typography";
+import { AppTextArea } from "../ui/text-area";
 
 const TEXT_AREA_USAGE = `<AppTextArea
   label="Text Area Label"
