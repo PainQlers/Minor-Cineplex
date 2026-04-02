@@ -10,6 +10,10 @@ import { TabShowcase } from "@/components/tab-showcase";
 import { TextAreaShowcase } from "@/components/text-area-showcase";
 import { StepShowcase } from "@/components/step-showcase";
 import { MenuLinkShowcase } from "@/components/menu-link-showcase";
+import { CheckboxShowcase } from "@/components/checkbox-showcase";
+import { RadioShowcase } from "@/components/radio-showcase";
+import { TagShowcase } from "@/components/tag-showcase";
+import { PaginationShowcase } from "@/components/pagination-showcase";
 
 import { COLORS } from "@/constants/colors";
 import { TYPOGRAPHY } from "@/constants/typography";
@@ -64,6 +68,10 @@ export default function Showcase() {
               Step
             </Text>
             <StepShowcase />
+            <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>
+              Tag
+            </Text>
+            <TagShowcase />
           </View>
         </View>
         <View className="flex flex-row gap-5">
@@ -78,6 +86,19 @@ export default function Showcase() {
               Menu Link
             </Text>
             <MenuLinkShowcase />
+            <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>
+              Checkbox
+            </Text>
+            <CheckboxShowcase />
+            <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>
+              Radio
+            </Text>
+            <RadioShowcase />
+          </View>
+        </View>
+        <View className="flex gap-5">
+          <View className="flex-1">
+            <PaginationShowcase />
           </View>
         </View>
       </View>
