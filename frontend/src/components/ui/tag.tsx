@@ -50,7 +50,7 @@ export function AppTag({
     >
       <Text
         style={[
-          TYPOGRAPHY.body4,
+          TYPOGRAPHY.body3,
           selected ? styles.labelSelected : styles.labelUnselected,
           disabled && styles.labelDisabled,
           labelStyle,

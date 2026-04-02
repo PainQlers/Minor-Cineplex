@@ -15,7 +15,12 @@ export function PaginationShowcase() {
         <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>
           Standard Pagination
         </Text>
-        <Text style={styles.description}>With page numbers and navigation</Text>
+        <Text style={styles.description}>{`<AppPagination
+          currentPage={1}
+          totalPages={10}
+          variant="standard"
+          style={styles.pagination}
+        />`}</Text>
         <AppPagination
           currentPage={1}
           totalPages={10}
@@ -28,7 +33,12 @@ export function PaginationShowcase() {
         <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>
           Minimal Pagination
         </Text>
-        <Text style={styles.description}>Current page only</Text>
+        <Text style={styles.description}>{`<AppPagination
+          currentPage={1}
+          totalPages={10}
+          variant="minimal"
+          style={styles.pagination}
+        />`}</Text>
         <AppPagination
           currentPage={1}
           totalPages={10}
@@ -41,7 +51,12 @@ export function PaginationShowcase() {
         <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>
           Arrow Pagination
         </Text>
-        <Text style={styles.description}>Navigation arrows only</Text>
+        <Text style={styles.description}>{`<AppPagination
+          currentPage={5}
+          totalPages={10}
+          variant="arrows"
+          style={styles.pagination}
+        />`}</Text>
         <AppPagination
           currentPage={5}
           totalPages={10}
