@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { COLORS } from "../constants/colors";
-import { TYPOGRAPHY } from "../constants/typography";
-import { AppInputField } from "./ui/input-field";
+import { COLORS } from "../../constants/colors";
+import { TYPOGRAPHY } from "../../constants/typography";
+import { AppInputField } from "../ui/input-field";
 
 const QUICK_USE = `<AppInputField
   label="Label"

@@ -5,9 +5,9 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-import { COLORS } from "../constants/colors";
-import { TYPOGRAPHY } from "../constants/typography";
-import { AppRadio } from "./ui/radio";
+import { COLORS } from "../../constants/colors";
+import { TYPOGRAPHY } from "../../constants/typography";
+import { AppRadio } from "../ui/radio";
 
 interface RadioCell {
   disabled?: boolean;

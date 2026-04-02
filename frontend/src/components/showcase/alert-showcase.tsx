@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { COLORS } from "../constants/colors";
-import { AppAlert } from "./ui/alert";
+import { COLORS } from "../../constants/colors";
+import { AppAlert } from "../ui/alert";
 
 const ALERT_USAGE = `<AppAlert
   title="Attention needed"

@@ -1,19 +1,20 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ButtonShowcase } from "@/components/button-showcase";
-import { AlertShowcase } from "@/components/alert-showcase";
-import { IconShowcase } from "@/components/icon-showcase";
-import { ModalShowcase } from "@/components/modal-showcase";
-import { InputShowcase } from "@/components/input-showcase";
-import { TabShowcase } from "@/components/tab-showcase";
-import { TextAreaShowcase } from "@/components/text-area-showcase";
-import { StepShowcase } from "@/components/step-showcase";
-import { MenuLinkShowcase } from "@/components/menu-link-showcase";
-import { CheckboxShowcase } from "@/components/checkbox-showcase";
-import { RadioShowcase } from "@/components/radio-showcase";
-import { TagShowcase } from "@/components/tag-showcase";
-import { PaginationShowcase } from "@/components/pagination-showcase";
+import { ButtonShowcase } from "@/components/showcase/button-showcase";
+import { AlertShowcase } from "@/components/showcase/alert-showcase";
+import { IconShowcase } from "@/components/showcase/icon-showcase";
+import { ModalShowcase } from "@/components/showcase/modal-showcase";
+import { InputShowcase } from "@/components/showcase/input-showcase";
+import { TabShowcase } from "@/components/showcase/tab-showcase";
+import { TextAreaShowcase } from "@/components/showcase/text-area-showcase";
+import { StepShowcase } from "@/components/showcase/step-showcase";
+import { MenuLinkShowcase } from "@/components/showcase/menu-link-showcase";
+import { CheckboxShowcase } from "@/components/showcase/checkbox-showcase";
+import { RadioShowcase } from "@/components/showcase/radio-showcase";
+import { TagShowcase } from "@/components/showcase/tag-showcase";
+import { PaginationShowcase } from "@/components/showcase/pagination-showcase";
+import { NavbarShowcase } from "@/components/showcase/navbar-showcase";
 
 import { COLORS } from "@/constants/colors";
 import { TYPOGRAPHY } from "@/constants/typography";
@@ -99,6 +100,9 @@ export default function Showcase() {
         <View className="flex flex-row gap-5">
           <View>
             <PaginationShowcase />
+          </View>
+          <View className="flex gap-5">
+            <NavbarShowcase />
           </View>
         </View>
       </View>

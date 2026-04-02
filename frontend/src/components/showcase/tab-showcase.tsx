@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { COLORS } from "../constants/colors";
-import { AppTabs } from "./ui/tab";
+import { COLORS } from "../../constants/colors";
+import { AppTabs } from "../ui/tab";
 
 const TAB_USAGE = `const [activeTab, setActiveTab] = useState("active");
 

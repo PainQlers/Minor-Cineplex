@@ -5,9 +5,9 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-import { COLORS } from "../constants/colors";
-import { TYPOGRAPHY } from "../constants/typography";
-import { AppTag } from "./ui/tag";
+import { COLORS } from "../../constants/colors";
+import { TYPOGRAPHY } from "../../constants/typography";
+import { AppTag } from "../ui/tag";
 
 interface TagCell {
   disabled?: boolean;

@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { COLORS } from "../constants/colors";
-import { AppSteps } from "./ui/step";
+import { COLORS } from "../../constants/colors";
+import { AppSteps } from "../ui/step";
 
 const STEP_USAGE = `<AppSteps
   items={[

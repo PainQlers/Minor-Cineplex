@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { COLORS } from "../constants/colors";
-import { AppModal } from "./ui/modal";
+import { COLORS } from "../../constants/colors";
+import { AppModal } from "../ui/modal";
 
 export function ModalShowcase() {
   return (

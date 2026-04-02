@@ -5,9 +5,9 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-import { COLORS } from "../constants/colors";
-import { TYPOGRAPHY } from "../constants/typography";
-import { AppCheckbox } from "./ui/checkbox";
+import { COLORS } from "../../constants/colors";
+import { TYPOGRAPHY } from "../../constants/typography";
+import { AppCheckbox } from "../ui/checkbox";
 
 interface CheckboxCell {
   checked?: boolean;
