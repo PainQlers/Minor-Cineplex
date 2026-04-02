@@ -1,14 +1,6 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  type StyleProp,
-  type TextStyle,
-  type ViewStyle,
-} from "react-native";
+import { Pressable, Text } from "react-native";
+import clsx from "clsx";
 
-import { COLORS } from "../../constants/colors";
-import { TYPOGRAPHY } from "../../constants/typography";
 import { AppIcon, type AppSvgIconSource } from "./icon";
 
 const noop = () => {};
@@ -20,35 +12,22 @@ interface MenuLinkProps {
   icon: AppSvgIconSource;
   iconColor?: string;
   label: string;
-  labelStyle?: StyleProp<TextStyle>;
   onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
   variant?: MenuLinkVariant;
+  className?: string;
+  labelClassName?: string;
 }
 
-const VARIANT_STYLES: Record<
-  MenuLinkVariant,
-  { containerStyle: ViewStyle; labelStyle: TextStyle; iconColor: string }
-> = {
+const VARIANT_CLASSES = {
   light: {
-    containerStyle: {
-      backgroundColor: COLORS.base.gray100,
-      borderColor: COLORS.base.gray300,
-    },
-    labelStyle: {
-      color: COLORS.text.secondary,
-    },
-    iconColor: COLORS.text.secondary,
+    container: "bg-base-gray100 border-base-gray300",
+    label: "text-text-secondary",
+    iconColor: "#C8CEDD",
   },
   dark: {
-    containerStyle: {
-      backgroundColor: COLORS.base.gray0,
-      borderColor: COLORS.base.gray300,
-    },
-    labelStyle: {
-      color: COLORS.text.secondary,
-    },
-    iconColor: COLORS.text.secondary,
+    container: "bg-base-gray0 border-base-gray300",
+    label: "text-text-secondary",
+    iconColor: "#C8CEDD",
   },
 };
 
@@ -57,13 +36,13 @@ export function MenuLink({
   icon,
   iconColor: iconColorProp,
   label,
-  labelStyle,
   onPress = noop,
-  style,
   variant = "light",
+  className,
+  labelClassName,
 }: MenuLinkProps) {
-  const currentVariant = VARIANT_STYLES[variant];
-  const iconColor = iconColorProp || currentVariant.iconColor;
+  const v = VARIANT_CLASSES[variant];
+  const iconColor = iconColorProp || v.iconColor;
 
   return (
     <Pressable
@@ -71,46 +50,29 @@ export function MenuLink({
       accessibilityRole="menuitem"
       disabled={disabled}
       onPress={onPress}
-      style={[
-        styles.base,
-        currentVariant.containerStyle,
-        disabled && styles.disabled,
-        style,
-      ]}
+      className={clsx(
+        "flex-row items-center gap-3 px-4 py-4 rounded-[20px] border-2",
+        v.container,
+        disabled && "opacity-50",
+        className
+      )}
     >
       <AppIcon
         icon={icon}
         size={24}
-        color={disabled ? COLORS.text.muted : iconColor}
+        color={disabled ? "#8B93B0" : iconColor}
       />
+
       <Text
-        style={[
-          TYPOGRAPHY.body1Regular,
-          currentVariant.labelStyle,
-          disabled && styles.disabledText,
-          labelStyle,
-        ]}
+        className={clsx(
+          "font-condensed text-body1",
+          v.label,
+          disabled && "text-text-muted",
+          labelClassName
+        )}
       >
         {label}
       </Text>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderRadius: 20,
-    borderWidth: 2,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  disabledText: {
-    color: COLORS.text.muted,
-  },
-});
