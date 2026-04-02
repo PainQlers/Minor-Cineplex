@@ -96,8 +96,8 @@ export default function Showcase() {
             <RadioShowcase />
           </View>
         </View>
-        <View className="flex gap-5">
-          <View className="flex-1">
+        <View className="flex flex-row gap-5">
+          <View>
             <PaginationShowcase />
           </View>
         </View>

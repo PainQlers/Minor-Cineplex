@@ -22,7 +22,7 @@ interface PaginationProps {
   onPageChange?: (page: number) => void;
   style?: StyleProp<ViewStyle>;
   totalPages: number;
-  variant?: "standard" | "minimal" | "arrows";
+  variant?: "standard" | "minimal" | "arrows" | "noarrow";
 }
 
 export function AppPagination({
@@ -133,7 +133,7 @@ export function AppPagination({
 
   return (
     <View style={[styles.container, style]}>
-      {variant !== "minimal" && (
+      {variant !== "noarrow" && (
         <Pressable
           disabled={currentPage === 1 || disabled}
           onPress={handlePrevious}
@@ -192,7 +192,7 @@ export function AppPagination({
         </Pressable>
       )}
 
-      {variant !== "minimal" && (
+      {variant !== "noarrow" && (
         <Pressable
           disabled={currentPage === totalPages || disabled}
           onPress={handleNext}
