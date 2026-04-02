@@ -1,8 +1,7 @@
-import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import clsx from "clsx";
 
 import CloseRoundLightIcon from "@/assets/icons/close_round_light.svg";
-import { COLORS } from "../../constants/colors";
-import { TYPOGRAPHY } from "../../constants/typography";
 import { AppIcon } from "./icon";
 
 const noop = () => {};
@@ -12,74 +11,53 @@ export type AppAlertVariant = "danger" | "success";
 export interface AppAlertProps {
   description?: string;
   onClose?: () => void;
-  style?: StyleProp<ViewStyle>;
   title: string;
   variant?: AppAlertVariant;
+  className?: string;
 }
 
-const VARIANT_STYLES: Record<AppAlertVariant, ViewStyle> = {
-  danger: {
-    backgroundColor: "#E5364B99",
-  },
-  success: {
-    backgroundColor: "#00A37299",
-  },
+const VARIANT_CLASSES: Record<AppAlertVariant, string> = {
+  danger: "bg-[#E5364B99]",
+  success: "bg-[#00A37299]",
 };
 
 export function AppAlert({
   description,
   onClose = noop,
-  style,
   title,
   variant = "danger",
+  className,
 }: AppAlertProps) {
   return (
-    <View style={[styles.container, VARIANT_STYLES[variant], style]}>
-
-      <View style={styles.content}>
-        <Text style={[TYPOGRAPHY.body1Medium, styles.title]}>{title}</Text>
+    <View
+      className={clsx(
+        "flex-row w-full rounded px-4 py-4 gap-3",
+        VARIANT_CLASSES[variant],
+        className
+      )}
+    >
+      {/* Content */}
+      <View className="flex-1 gap-1">
+        <Text className="text-text-primary font-condensedMedium text-body1medium">
+          {title}
+        </Text>
 
         {!!description && (
-          <Text style={[TYPOGRAPHY.body2Regular, styles.description]}>
+          <Text className="text-text-primary font-condensed text-body2regular">
             {description}
           </Text>
         )}
       </View>
+
+      {/* Close Button */}
       <Pressable
         accessibilityLabel="Close alert"
         accessibilityRole="button"
         onPress={onClose}
-        style={styles.closeButton}
+        className="items-center justify-center w-6 h-6"
       >
         <AppIcon icon={CloseRoundLightIcon} size={24} />
       </Pressable>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  closeButton: {
-    alignItems: "center",
-    height: 24,
-    justifyContent: "center",
-    width: 24,
-  },
-  container: {
-    borderRadius: 4,
-    columnGap: 12,
-    flexDirection: "row",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    width: "100%",
-  },
-  content: {
-    flex: 1,
-    gap: 4,
-  },
-  description: {
-    color: COLORS.text.primary,
-  },
-  title: {
-    color: COLORS.text.primary,
-  },
-});
