@@ -15,6 +15,7 @@ import { RadioShowcase } from "@/components/showcase/radio-showcase";
 import { TagShowcase } from "@/components/showcase/tag-showcase";
 import { PaginationShowcase } from "@/components/showcase/pagination-showcase";
 import { NavbarShowcase } from "@/components/showcase/navbar-showcase";
+import { MovieShowcase } from "@/components/showcase/movie-showcase";
 
 import { COLORS } from "@/constants/colors";
 import { TYPOGRAPHY } from "@/constants/typography";
@@ -104,6 +105,12 @@ export default function Showcase() {
           <View className="flex gap-5">
             <NavbarShowcase />
           </View>
+          <View>
+          <Text style={[TYPOGRAPHY.sectionTitle, styles.sectionTitle]}>
+            Movies & Branches (Penpot Exported)
+          </Text>
+          <MovieShowcase />
+        </View>
         </View>
       </View>
     </ScrollView>
