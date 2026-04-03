@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import Header from '../../components/Header';
-import FilterRow from '../../components/FilterRow';
-import { Checkbox } from '../../components/Checkbox';
-import SubmitButton from '../../components/SubmitButton';
+import Header from '../../components/sections/auth/AuthHeader';
+import FilterRow from '../../components/sections/auth/AuthFilterRow';
+import { Checkbox } from '../../components/sections/auth/AuthCheckbox';
+import SubmitButton from '../../components/sections/auth/AuthSubmitButton';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 

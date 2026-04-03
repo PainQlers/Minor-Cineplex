@@ -1,15 +1,23 @@
+import { ReactNode } from "react";
 import { Pressable, Text } from "react-native";
 import clsx from "clsx";
 
-export type AppButtonVariant = "primary" | "secondary" | "third" | "outline" | "link";
+export type AppButtonVariant =
+  | "primary"
+  | "secondary"
+  | "third"
+  | "outline"
+  | "link";
 
 interface AppButtonProps {
   disabled?: boolean;
-  label: string;
+  label?: string;
+  children?: ReactNode;
   onPress?: () => void;
   variant?: AppButtonVariant;
   className?: string;
   labelClassName?: string;
+  accessibilityLabel?: string;
 }
 
 const noop = () => {};
@@ -43,38 +51,44 @@ const VARIANT_CLASSES: Record<
 export function AppButton({
   disabled = false,
   label,
+  children,
   onPress = noop,
   variant = "primary",
   className,
   labelClassName,
+  accessibilityLabel,
 }: AppButtonProps) {
   const v = VARIANT_CLASSES[variant];
+  const isLink = variant === "link";
+  const hasLabel = typeof label === "string" && label.length > 0;
 
   return (
     <Pressable
-      accessibilityLabel={label}
-      accessibilityRole={variant === "link" ? "link" : "button"}
+      accessibilityLabel={accessibilityLabel ?? label ?? "button"}
+      accessibilityRole={isLink ? "link" : "button"}
       disabled={disabled}
       onPress={onPress}
       className={clsx(
         "items-center justify-center",
-        variant === "link"
-          ? "self-start min-h-6"
-          : "rounded min-h-12 min-w-[123px] px-10 py-3",
+        isLink ? "self-start min-h-6" : "rounded min-h-12 min-w-[123px] px-10 py-3",
         v.container,
         disabled && "opacity-40",
         className
       )}
     >
-      <Text
-        className={clsx(
-          "text-base font-semibold",
-          v.label,
-          labelClassName
-        )}
-      >
-        {label}
-      </Text>
+      {children ? (
+        children
+      ) : hasLabel ? (
+        <Text
+          className={clsx(
+            "text-base font-semibold",
+            v.label,
+            labelClassName
+          )}
+        >
+          {label}
+        </Text>
+      ) : null}
     </Pressable>
   );
 }

@@ -20,30 +20,28 @@ interface AppNavbarProps {
   onHamburgerPress?: () => void;
   onLogoPress?: () => void;
   showHamburger?: boolean;
-  variant?: "light" | "dark";
+  
   className?: string;
 }
 
 export function AppNavbar({
   items = [],
   logo,
-  logoLabel = "Cineplex",
   onHamburgerPress = noop,
   onLogoPress = noop,
   showHamburger = true,
-  variant = "dark",
+  
   className,
 }: AppNavbarProps) {
   return (
     <View
       className={clsx(
-        "flex-row items-center justify-between px-4 py-3 border-b",
-        variant === "dark"
-          ? "bg-base-gray0/80 border-base-gray100"
-          : "bg-base-gray100/80 border-base-gray200",
+        "flex-1 flex-row justify-between px-4 py-2 w-full",
+        
         className
       )}
     >
+      <Text className="absolute inset-0 flex items-center justify-center bg-base-gray100 opacity-20"></Text>
       {/* Left: Logo */}
       <Pressable
         onPress={onLogoPress}

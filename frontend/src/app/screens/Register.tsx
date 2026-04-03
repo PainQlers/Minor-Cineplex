@@ -3,11 +3,11 @@ import { ScrollView, View, Text } from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 
-import Header from '../../components/Header';
-import SearchBar from '../../components/SearchBar';
-import FilterRow from '../../components/FilterRow';
-import SubmitButton from '../../components/SubmitButton';
-import Footer from '../../components/Footer';
+import Header from '../../components/sections/auth/AuthHeader';
+import SearchBar from '../../components/sections/auth/AuthSearchBar';
+import FilterRow from '../../components/sections/auth/AuthFilterRow';
+import SubmitButton from '../../components/sections/auth/AuthSubmitButton';
+import Footer from '../../components/sections/auth/AuthFooter';
 
 // ── Filter field config ───────────────────────────────────────────────────────
 const FILTER_FIELDS = [
