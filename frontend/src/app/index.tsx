@@ -5,6 +5,8 @@ import { ScrollView, View } from "react-native";
 import { HeroBackground } from "@/components/sections/landing/HeroBackground";
 import { LandingNavbar } from "@/components/sections/landing/LandingNavbar";
 import { SearchPanel } from "@/components/sections/landing/SearchPanel";
+import { MoviesSection } from "@/components/sections/landing/MoviesSection";
+
 
 export default function Index() {
   return (
@@ -17,6 +19,7 @@ export default function Index() {
             {/* <HeaderSection /> */}
             <SearchPanel />
           </View>
+          <MoviesSection />
         </HeroBackground>
       </ScrollView>
     </>

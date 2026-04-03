@@ -38,15 +38,11 @@ export function AppTab({
       accessibilityState={{ disabled, selected: active }}
       disabled={disabled}
       onPress={onPress}
-      className={clsx(
-        "gap-2 px-2 py-1",
-        disabled && "opacity-40",
-        className
-      )}
+      className={clsx("gap-2 px-1 py-1", disabled && "opacity-40", className)}
     >
       <Text
         className={clsx(
-          "text-center font-condensedBold text-headline3",
+          "text-sectionTitle font-condensedBold",
           active ? "text-text-primary" : "text-text-muted"
         )}
       >
@@ -55,7 +51,7 @@ export function AppTab({
 
       <View
         className={clsx(
-          "h-[1px] self-stretch bg-base-gray200",
+          "h-[2px] self-stretch rounded-full bg-base-white",
           !active && "opacity-0"
         )}
       />
@@ -72,7 +68,7 @@ export function AppTabs({
   return (
     <View
       accessibilityRole="tablist"
-      className={clsx("flex-row items-start gap-10", className)}
+      className={clsx("flex-row items-start gap-6", className)}
     >
       {items.map((item) => (
         <AppTab
