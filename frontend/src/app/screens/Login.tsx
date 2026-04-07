@@ -160,6 +160,10 @@ export default function Login() {
               onPress={() => router.push('/screens/Register')}>
                 Register
               </Text>
+              <Text className="text-white text-xs text-center px-1 leading-5 underline"
+              onPress={() => router.push('/screens/Booking')}>
+                Booking
+              </Text>
             </View>
         </ScrollView>
       </KeyboardAvoidingView>
