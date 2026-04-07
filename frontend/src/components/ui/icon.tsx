@@ -1,8 +1,8 @@
-import type { ComponentType } from "react";
+import type { ComponentType, ReactNode } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 import type { SvgProps } from "react-native-svg";
-
-import { COLORS } from "../../constants/colors";
+import { View } from "react-native";
+import clsx from "clsx";
 
 export type AppSvgIcon = ComponentType<SvgProps>;
 export type AppSvgIconModule = { default: AppSvgIcon };
@@ -11,9 +11,11 @@ export type AppSvgIconSource = AppSvgIcon | AppSvgIconModule;
 export interface AppIconProps
   extends Omit<SvgProps, "color" | "height" | "style" | "width"> {
   color?: string;
-  icon: AppSvgIconSource;
+  icon?: AppSvgIconSource;
   size?: number;
+  className?: string;
   style?: StyleProp<ViewStyle>;
+  children?: ReactNode;
 }
 
 function resolveIconComponent(icon: AppSvgIconSource): AppSvgIcon {
@@ -25,13 +27,35 @@ function resolveIconComponent(icon: AppSvgIconSource): AppSvgIcon {
 }
 
 export function AppIcon({
-  color = COLORS.text.primary,
+  color = "#FFFFFF",
   icon,
   size = 24,
+  className,
   style,
+  children,
   ...svgProps
 }: AppIconProps) {
-  const Icon = resolveIconComponent(icon);
+  return (
+    <View
+      className={clsx("items-center justify-center", className)}
+      style={style}
+    >
+      {children
+        ? children
+        : icon
+          ? (() => {
+              const Icon = resolveIconComponent(icon);
 
-  return <Icon color={color} height={size} style={style} width={size} {...svgProps} />;
+              return (
+                <Icon
+                  color={color}
+                  width={size}
+                  height={size}
+                  {...svgProps}
+                />
+              );
+            })()
+          : null}
+    </View>
+  );
 }

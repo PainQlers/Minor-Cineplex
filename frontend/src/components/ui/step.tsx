@@ -1,16 +1,6 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type StyleProp,
-  type TextStyle,
-  type ViewStyle,
-} from "react-native";
-
+import { Pressable, Text, View } from "react-native";
+import clsx from "clsx";
 import DoneRoundLightIcon from "@/assets/icons/done_round_light.svg";
-import { COLORS } from "../../constants/colors";
-import { TYPOGRAPHY } from "../../constants/typography";
 import { AppIcon } from "./icon";
 
 const noop = () => {};
@@ -19,11 +9,10 @@ export type AppStepStatus = "active" | "complete" | "inactive";
 
 export interface AppStepProps {
   label: string;
-  labelStyle?: StyleProp<TextStyle>;
   onPress?: () => void;
   status?: AppStepStatus;
   stepNumber?: number | string;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 }
 
 export interface AppStepItem {
@@ -35,30 +24,21 @@ export interface AppStepItem {
 
 export interface AppStepsProps {
   items: AppStepItem[];
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 }
 
-const INDICATOR_STYLES: Record<AppStepStatus, ViewStyle> = {
-  active: {
-    backgroundColor: COLORS.brand.blue100,
-  },
-  complete: {
-    backgroundColor: COLORS.brand.blue200,
-  },
-  inactive: {
-    backgroundColor: "transparent",
-    borderColor: COLORS.surface.panel,
-    borderWidth: 1,
-  },
+const STATUS_CLASSES: Record<AppStepStatus, string> = {
+  active: "bg-brand-blue100",
+  complete: "bg-brand-blue200",
+  inactive: "bg-transparent border border-surface-panel",
 };
 
 export function AppStep({
   label,
-  labelStyle,
   onPress = noop,
   status = "inactive",
   stepNumber = 1,
-  style,
+  className,
 }: AppStepProps) {
   return (
     <Pressable
@@ -66,24 +46,35 @@ export function AppStep({
       accessibilityRole="button"
       disabled={onPress === noop}
       onPress={onPress}
-      style={[styles.step, style]}
+      className={clsx("items-center gap-1 w-[140px]", className)}
     >
-      <View style={[styles.indicator, INDICATOR_STYLES[status]]}>
+      {/* Indicator */}
+      <View
+        className={clsx(
+          "w-11 h-11 rounded-full items-center justify-center",
+          STATUS_CLASSES[status]
+        )}
+      >
         {status === "complete" ? (
           <AppIcon icon={DoneRoundLightIcon} size={28} />
         ) : (
-          <Text style={[TYPOGRAPHY.headline4, styles.stepNumber]}>{stepNumber}</Text>
+          <Text className="text-text-primary font-condensedBold text-headline4">
+            {stepNumber}
+          </Text>
         )}
       </View>
 
-      <Text style={[TYPOGRAPHY.body1Regular, styles.label, labelStyle]}>{label}</Text>
+      {/* Label */}
+      <Text className="text-text-primary text-center font-condensed text-body1">
+        {label}
+      </Text>
     </Pressable>
   );
 }
 
-export function AppSteps({ items, style }: AppStepsProps) {
+export function AppSteps({ items, className }: AppStepsProps) {
   return (
-    <View style={[styles.steps, style]}>
+    <View className={clsx("flex-row gap-[25px]", className)}>
       {items.map((item, index) => (
         <AppStep
           key={item.key}
@@ -95,30 +86,3 @@ export function AppSteps({ items, style }: AppStepsProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  indicator: {
-    alignItems: "center",
-    borderRadius: 99,
-    height: 44,
-    justifyContent: "center",
-    width: 44,
-  },
-  label: {
-    color: COLORS.text.primary,
-    textAlign: "center",
-  },
-  step: {
-    alignItems: "center",
-    gap: 6,
-    width: 140,
-  },
-  stepNumber: {
-    color: COLORS.text.primary,
-    textAlign: "center",
-  },
-  steps: {
-    flexDirection: "row",
-    gap: 25,
-  },
-});

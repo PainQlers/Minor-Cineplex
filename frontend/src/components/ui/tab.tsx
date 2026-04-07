@@ -1,15 +1,5 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type StyleProp,
-  type TextStyle,
-  type ViewStyle,
-} from "react-native";
-
-import { COLORS } from "../../constants/colors";
-import { TYPOGRAPHY } from "../../constants/typography";
+import { Pressable, Text, View } from "react-native";
+import clsx from "clsx";
 
 const noop = () => {};
 
@@ -17,9 +7,8 @@ export interface AppTabProps {
   active?: boolean;
   disabled?: boolean;
   label: string;
-  labelStyle?: StyleProp<TextStyle>;
   onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 }
 
 export interface AppTabItem {
@@ -31,17 +20,16 @@ export interface AppTabItem {
 export interface AppTabsProps {
   items: AppTabItem[];
   onChange?: (key: string) => void;
-  style?: StyleProp<ViewStyle>;
   value: string;
+  className?: string;
 }
 
 export function AppTab({
   active = false,
   disabled = false,
   label,
-  labelStyle,
   onPress = noop,
-  style,
+  className,
 }: AppTabProps) {
   return (
     <Pressable
@@ -50,63 +38,47 @@ export function AppTab({
       accessibilityState={{ disabled, selected: active }}
       disabled={disabled}
       onPress={onPress}
-      style={[styles.tab, disabled && styles.disabled, style]}
+      className={clsx("gap-2 px-1 py-1", disabled && "opacity-40", className)}
     >
       <Text
-        style={[
-          TYPOGRAPHY.headline3,
-          styles.label,
-          { color: active ? COLORS.text.primary : COLORS.text.muted },
-          labelStyle,
-        ]}
+        className={clsx(
+          "text-sectionTitle font-condensedBold",
+          active ? "text-text-primary" : "text-text-muted"
+        )}
       >
         {label}
       </Text>
 
-      <View style={[styles.indicator, !active && styles.indicatorHidden]} />
+      <View
+        className={clsx(
+          "h-[2px] self-stretch rounded-full bg-base-white",
+          !active && "opacity-0"
+        )}
+      />
     </Pressable>
   );
 }
 
-export function AppTabs({ items, onChange = noop, style, value }: AppTabsProps) {
+export function AppTabs({
+  items,
+  onChange = noop,
+  value,
+  className,
+}: AppTabsProps) {
   return (
-    <View accessibilityRole="tablist" style={[styles.tabs, style]}>
+    <View
+      accessibilityRole="tablist"
+      className={clsx("flex-row items-start gap-6", className)}
+    >
       {items.map((item) => (
         <AppTab
-          active={item.key === value}
-          disabled={item.disabled}
           key={item.key}
           label={item.label}
+          active={item.key === value}
+          disabled={item.disabled}
           onPress={() => onChange(item.key)}
         />
       ))}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  disabled: {
-    opacity: 0.4,
-  },
-  indicator: {
-    alignSelf: "stretch",
-    backgroundColor: COLORS.base.gray200,
-    height: 1,
-  },
-  indicatorHidden: {
-    opacity: 0,
-  },
-  label: {
-    textAlign: "center",
-  },
-  tab: {
-    gap: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  tabs: {
-    alignItems: "flex-start",
-    flexDirection: "row",
-    gap: 40,
-  },
-});

@@ -1,114 +1,94 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  type StyleProp,
-  type TextStyle,
-  type ViewStyle,
-} from "react-native";
+import { ReactNode } from "react";
+import { Pressable, Text } from "react-native";
+import clsx from "clsx";
 
-import { COLORS } from "../../constants/colors";
-import { TYPOGRAPHY } from "../../constants/typography";
-
-const noop = () => {};
-
-export type AppButtonVariant = "primary" | "secondary" | "outline" | "link";
+export type AppButtonVariant =
+  | "primary"
+  | "secondary"
+  | "third"
+  | "outline"
+  | "link";
 
 interface AppButtonProps {
   disabled?: boolean;
-  labelStyle?: StyleProp<TextStyle>;
-  label: string;
+  label?: string;
+  children?: ReactNode;
   onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
   variant?: AppButtonVariant;
+  className?: string;
+  labelClassName?: string;
+  accessibilityLabel?: string;
 }
 
-const VARIANT_STYLES: Record<
+const noop = () => {};
+
+const VARIANT_CLASSES: Record<
   AppButtonVariant,
-  { containerStyle: ViewStyle; labelStyle: TextStyle }
+  { container: string; label: string }
 > = {
-  link: {
-    containerStyle: {},
-    labelStyle: {
-      color: COLORS.text.primary,
-      textDecorationLine: "underline",
-    },
-  },
-  outline: {
-    containerStyle: {
-      borderColor: COLORS.base.gray300,
-      borderWidth: 1,
-    },
-    labelStyle: {
-      color: COLORS.text.primary,
-    },
-  },
   primary: {
-    containerStyle: {
-      backgroundColor: COLORS.brand.blue100,
-    },
-    labelStyle: {
-      color: COLORS.text.primary,
-    },
+    container: "bg-brand-blue100",
+    label: "text-base-white font-condensed",
   },
   secondary: {
-    containerStyle: {
-      backgroundColor: COLORS.brand.blue200,
-    },
-    labelStyle: {
-      color: COLORS.text.primary,
-    },
+    container: "bg-brand-blue200",
+    label: "text-base-white font-condensed",
+  },
+  third: {
+    container: "bg-brand-blue300",
+    label: "text-base-white font-condensed",
+  },
+  outline: {
+    container: "border border-gray-300",
+    label: "text-base-white font-condensed",
+  },
+  link: {
+    container: "",
+    label: "text-base-white underline font-condensed",
   },
 };
 
 export function AppButton({
   disabled = false,
   label,
-  labelStyle,
+  children,
   onPress = noop,
-  style,
   variant = "primary",
+  className,
+  labelClassName,
+  accessibilityLabel,
 }: AppButtonProps) {
-  const currentVariant = VARIANT_STYLES[variant];
+  const v = VARIANT_CLASSES[variant];
+  const isLink = variant === "link";
+  const hasLabel = typeof label === "string" && label.length > 0;
 
   return (
     <Pressable
-      accessibilityLabel={label}
-      accessibilityRole={variant === "link" ? "link" : "button"}
+      accessibilityLabel={accessibilityLabel ?? label ?? "button"}
+      accessibilityRole={isLink ? "link" : "button"}
       disabled={disabled}
       onPress={onPress}
-      style={[
-        styles.base,
-        variant === "link" ? styles.linkButton : styles.boxButton,
-        currentVariant.containerStyle,
-        disabled && styles.disabled,
-        style,
-      ]}
+      className={clsx(
+        "items-center justify-center",
+        isLink ? "self-start min-h-6" : "rounded min-h-12 min-w-[123px] px-10 py-3",
+        v.container,
+        disabled && "opacity-40",
+        className
+      )}
     >
-      <Text style={[TYPOGRAPHY.button, currentVariant.labelStyle, labelStyle]}>
-        {label}
-      </Text>
+      {children ? (
+        children
+      ) : hasLabel ? (
+        <Text
+          className={clsx(
+            "text-base font-semibold",
+            v.label,
+            labelClassName
+          )}
+        >
+          {label}
+        </Text>
+      ) : null}
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  boxButton: {
-    borderRadius: 4,
-    minHeight: 48,
-    minWidth: 123,
-    paddingHorizontal: 40,
-    paddingVertical: 12,
-  },
-  disabled: {
-    opacity: 0.4,
-  },
-  linkButton: {
-    alignSelf: "flex-start",
-    minHeight: 24,
-  },
-});

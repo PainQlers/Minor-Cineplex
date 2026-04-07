@@ -1,77 +1,53 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  type StyleProp,
-  type TextInputProps,
-  type TextStyle,
-  type ViewStyle,
-} from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 import { useState } from "react";
-
-import { COLORS } from "../../constants/colors";
-import { TYPOGRAPHY } from "../../constants/typography";
+import clsx from "clsx";
 
 const noop = () => {};
 
-export interface AppInputFieldProps
-  extends Omit<
-    TextInputProps,
-    "editable" | "onChangeText" | "placeholder" | "style" | "value"
-  > {
+export interface AppInputFieldProps {
   disabled?: boolean;
   errorText?: string;
   helperText?: string;
-  inputStyle?: StyleProp<TextStyle>;
   label: string;
-  labelStyle?: StyleProp<TextStyle>;
   onChangeText?: (text: string) => void;
   onClear?: () => void;
   placeholder?: string;
   showClearButton?: boolean;
   showSearchIcon?: boolean;
-  style?: StyleProp<ViewStyle>;
   value?: string;
+  className?: string;
 }
 
-function SearchIcon({ color }: { color: string }) {
+function SearchIcon({ colorClass }: { colorClass: string }) {
   return (
-    <View style={styles.iconFrame}>
-      <View style={[styles.searchCircle, { borderColor: color }]} />
-      <View style={[styles.searchHandle, { backgroundColor: color }]} />
+    <View className="items-center justify-center w-6 h-6">
+      <View className={clsx("absolute w-3 h-3 border rounded-full left-[5px] top-[5px]", colorClass)} />
+      <View className={clsx("absolute w-1 h-[1px] left-[16px] top-[16px] rotate-45", colorClass)} />
     </View>
   );
 }
 
-function ClearIcon({ color }: { color: string }) {
+function ClearIcon({ colorClass }: { colorClass: string }) {
   return (
-    <View style={styles.iconFrame}>
-      <View style={[styles.clearLine, styles.clearLineLeft, { backgroundColor: color }]} />
-      <View style={[styles.clearLine, styles.clearLineRight, { backgroundColor: color }]} />
+    <View className="items-center justify-center w-6 h-6">
+      <View className={clsx("absolute w-3 h-[1px] left-[6px] top-[11.5px] rotate-45", colorClass)} />
+      <View className={clsx("absolute w-3 h-[1px] left-[6px] top-[11.5px] -rotate-45", colorClass)} />
     </View>
   );
 }
 
 export function AppInputField({
-  autoCapitalize = "none",
   disabled = false,
   errorText,
   helperText,
-  inputStyle,
   label,
-  labelStyle,
-  onBlur,
   onChangeText = noop,
   onClear,
-  onFocus,
   placeholder = "Placeholder Text",
   showClearButton = false,
   showSearchIcon = true,
-  style,
   value,
-  ...textInputProps
+  className,
 }: AppInputFieldProps) {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -79,151 +55,79 @@ export function AppInputField({
   const hasError = Boolean(errorText);
   const isActive = !disabled && (isFocused || hasValue);
 
-  const borderColor = hasError
-    ? COLORS.semantic.danger
+  const borderClass = hasError
+    ? "border-semantic-danger"
     : isActive
-      ? COLORS.base.gray300
-      : COLORS.base.gray200;
+      ? "border-base-gray300"
+      : "border-base-gray200";
 
-  const iconColor = disabled
-    ? COLORS.text.muted
+  const iconColorClass = disabled
+    ? "bg-text-muted border-text-muted"
     : hasError
-      ? COLORS.text.primary
+      ? "bg-text-primary border-text-primary"
       : isActive
-        ? COLORS.text.primary
-        : COLORS.text.secondary;
+        ? "bg-text-primary border-text-primary"
+        : "bg-text-secondary border-text-secondary";
 
-  const inputColor = disabled
-    ? COLORS.text.muted
+  const inputColorClass = disabled
+    ? "text-text-muted"
     : hasValue
-      ? COLORS.text.primary
-      : COLORS.text.muted;
+      ? "text-text-primary"
+      : "text-text-muted";
 
-  const helperColor = hasError ? COLORS.semantic.danger : COLORS.text.muted;
+  const helperColorClass = hasError
+    ? "text-semantic-danger"
+    : "text-text-muted";
 
   return (
-    <View style={[styles.wrapper, disabled && styles.disabled, style]}>
-      <Text style={[TYPOGRAPHY.body1Regular, styles.label, labelStyle]}>{label}</Text>
+    <View className={clsx("w-full gap-1", disabled && "opacity-40", className)}>
+      {/* Label */}
+      <Text className="text-text-secondary font-condensed text-body1">
+        {label}
+      </Text>
 
+      {/* Field */}
       <View
-        style={[
-          styles.field,
-          { borderColor, borderWidth: disabled ? 0 : 1 },
-        ]}
+        className={clsx(
+          "flex-row items-center gap-1 bg-surface-panel rounded min-h-12 px-3 py-3 border",
+          disabled && "border-0",
+          borderClass
+        )}
       >
-        {showSearchIcon ? <SearchIcon color={iconColor} /> : null}
+        {showSearchIcon && <SearchIcon colorClass={iconColorClass} />}
 
         <TextInput
-          {...textInputProps}
-          autoCapitalize={autoCapitalize}
           editable={!disabled}
-          onBlur={(event) => {
-            setIsFocused(false);
-            onBlur?.(event);
-          }}
+          onBlur={() => setIsFocused(false)}
+          onFocus={() => setIsFocused(true)}
           onChangeText={onChangeText}
-          onFocus={(event) => {
-            setIsFocused(true);
-            onFocus?.(event);
-          }}
           placeholder={placeholder}
-          placeholderTextColor={COLORS.text.muted}
-          selectionColor={COLORS.text.primary}
-          style={[TYPOGRAPHY.body1Regular, styles.input, { color: inputColor }, inputStyle]}
+          placeholderTextColor="#8B93B0"
+          selectionColor="#FFFFFF"
+          className={clsx(
+            "flex-1 min-h-6 font-condensed text-body1",
+            inputColorClass
+          )}
           value={value}
         />
 
-        {showClearButton ? (
+        {showClearButton && (
           <Pressable
             accessibilityLabel="Clear input"
             accessibilityRole="button"
             disabled={disabled || !onClear}
             onPress={onClear}
-            style={styles.clearButton}
+            className="items-center justify-center w-6 h-6"
           >
-            <ClearIcon color={iconColor} />
+            <ClearIcon colorClass={iconColorClass} />
           </Pressable>
-        ) : null}
+        )}
       </View>
 
-      <Text style={[TYPOGRAPHY.body3, styles.helper, { color: helperColor }]}>
+      {/* Helper */}
+      <Text className={clsx("min-h-[18px] font-condensed text-body3", helperColorClass)}>
         {errorText ?? helperText ?? ""}
       </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  clearButton: {
-    alignItems: "center",
-    height: 24,
-    justifyContent: "center",
-    width: 24,
-  },
-  clearLine: {
-    borderRadius: 999,
-    height: 1,
-    left: 6,
-    position: "absolute",
-    top: 11.5,
-    width: 12,
-  },
-  clearLineLeft: {
-    transform: [{ rotate: "45deg" }],
-  },
-  clearLineRight: {
-    transform: [{ rotate: "-45deg" }],
-  },
-  disabled: {
-    opacity: 0.4,
-  },
-  field: {
-    alignItems: "center",
-    backgroundColor: COLORS.surface.panel,
-    borderRadius: 4,
-    flexDirection: "row",
-    gap: 4,
-    minHeight: 48,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
-  helper: {
-    minHeight: 18,
-  },
-  iconFrame: {
-    alignItems: "center",
-    height: 24,
-    justifyContent: "center",
-    width: 24,
-  },
-  input: {
-    flex: 1,
-    minHeight: 24,
-    paddingVertical: 0,
-  },
-  label: {
-    color: COLORS.text.secondary,
-  },
-  searchCircle: {
-    borderRadius: 999,
-    borderWidth: 1,
-    height: 12,
-    left: 5,
-    position: "absolute",
-    top: 5,
-    width: 12,
-  },
-  searchHandle: {
-    borderRadius: 999,
-    height: 1,
-    left: 16,
-    position: "absolute",
-    top: 16,
-    transform: [{ rotate: "45deg" }],
-    width: 4,
-  },
-  wrapper: {
-    gap: 4,
-    width: "100%",
-  },
-});

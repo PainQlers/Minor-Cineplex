@@ -1,18 +1,9 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from "react-native";
+import { Pressable, Text, View } from "react-native";
+import clsx from "clsx";
+import { Image } from "expo-image";
 
 import HamburgerIcon from "@/assets/icons/hamburger.svg";
-import { COLORS } from "../../constants/colors";
-import { TYPOGRAPHY } from "../../constants/typography";
 import { AppIcon } from "./icon";
-import { MenuLink, type MenuLinkVariant } from "./menu-link";
-import { Image } from "expo-image";
 
 const noop = () => {};
 
@@ -29,26 +20,33 @@ interface AppNavbarProps {
   onHamburgerPress?: () => void;
   onLogoPress?: () => void;
   showHamburger?: boolean;
-  style?: StyleProp<ViewStyle>;
-  variant?: "light" | "dark";
+  
+  className?: string;
 }
 
 export function AppNavbar({
   items = [],
   logo,
-  logoLabel = "Cineplex",
   onHamburgerPress = noop,
   onLogoPress = noop,
   showHamburger = true,
-  style,
-  variant = "dark",
+  
+  className,
 }: AppNavbarProps) {
   return (
     <View
-      style={[styles.navbar, variant === "light" && styles.navbarLight, style]}
+      className={clsx(
+        "flex-1 flex-row justify-between px-4 py-2 w-full",
+        
+        className
+      )}
     >
-      {/* Left: Hamburger Menu */}
-      <Pressable onPress={onLogoPress} style={styles.logoButton}>
+      <Text className="absolute inset-0 flex items-center justify-center bg-base-gray100 opacity-20"></Text>
+      {/* Left: Logo */}
+      <Pressable
+        onPress={onLogoPress}
+        className="p-2 items-center justify-center"
+      >
         {logo ? (
           logo
         ) : (
@@ -61,16 +59,16 @@ export function AppNavbar({
         )}
       </Pressable>
 
-      {/* Center: Navigation Items (optional) */}
+      {/* Center: Navigation Items */}
       {items.length > 0 && (
-        <View style={styles.itemsContainer}>
+        <View className="flex-row gap-3 flex-1 justify-center px-4">
           {items.map((item) => (
             <Pressable
               key={item.id}
               onPress={item.onPress || noop}
-              style={styles.navItem}
+              className="px-3 py-2"
             >
-              <Text style={[TYPOGRAPHY.body1Regular, styles.navItemText]}>
+              <Text className="font-condensed text-body1 text-text-secondary">
                 {item.label}
               </Text>
             </Pressable>
@@ -78,61 +76,15 @@ export function AppNavbar({
         </View>
       )}
 
-      {/* Right */}
+      {/* Right: Hamburger */}
       {showHamburger && (
-        <Pressable onPress={onHamburgerPress} style={styles.hamburgerButton}>
-          <AppIcon icon={HamburgerIcon} size={24} color={COLORS.text.primary} />
+        <Pressable
+          onPress={onHamburgerPress}
+          className="p-2 items-center justify-center"
+        >
+          <AppIcon icon={HamburgerIcon} size={24} />
         </Pressable>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  defaultLogo: {
-    width: 32,
-    height: 32,
-    borderRadius: 4,
-    backgroundColor: COLORS.base.gray100,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  hamburgerButton: {
-    padding: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  itemsContainer: {
-    flexDirection: "row",
-    gap: 12,
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 16,
-  },
-  logoButton: {
-    padding: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  navbar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: `${COLORS.base.gray0}CC`,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.base.gray100,
-  },
-  navbarLight: {
-    backgroundColor: `${COLORS.base.gray100}CC`,
-    borderBottomColor: COLORS.base.gray200,
-  },
-  navItem: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  navItemText: {
-    color: COLORS.text.secondary,
-  },
-});

@@ -1,34 +1,24 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  type StyleProp,
-  type TextStyle,
-  type ViewStyle,
-  View,
-} from "react-native";
-
-import { COLORS } from "../../constants/colors";
-import { TYPOGRAPHY } from "../../constants/typography";
+import { Pressable, Text, View } from "react-native";
+import clsx from "clsx";
 
 const noop = () => {};
 
 interface AppRadioProps {
   disabled?: boolean;
   label?: string;
-  labelStyle?: StyleProp<TextStyle>;
   onPress?: (selected: boolean) => void;
   selected?: boolean;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
+  labelClassName?: string;
 }
 
 export function AppRadio({
   disabled = false,
   label,
-  labelStyle,
   onPress = noop,
   selected = false,
-  style,
+  className,
+  labelClassName,
 }: AppRadioProps) {
   const handlePress = () => {
     if (!disabled && !selected) {
@@ -42,26 +32,36 @@ export function AppRadio({
       accessibilityState={{ selected, disabled }}
       disabled={disabled}
       onPress={handlePress}
-      style={[styles.container, disabled && styles.disabled, style]}
+      className={clsx(
+        "flex-row items-center gap-2",
+        disabled && "opacity-50",
+        className
+      )}
     >
+      {/* Radio Circle */}
       <View
-        style={[
-          styles.radio,
-          selected && styles.selectedRadio,
-          disabled && styles.disabledRadio,
-        ]}
+        className={clsx(
+          "w-5 h-5 rounded-full items-center justify-center border",
+          selected
+            ? "border-[3px] border-brand-blue100"
+            : "border-base-gray200",
+          disabled && "opacity-60"
+        )}
       >
-        {selected && <View style={styles.dot} />}
+        {selected && (
+          <View className="w-[10px] h-[10px] rounded-full bg-brand-blue100" />
+        )}
       </View>
+
+      {/* Label */}
       {label && (
         <Text
-          style={[
-            TYPOGRAPHY.body3,
-            styles.label,
-            selected ? styles.labelSelected : styles.labelUnselected,
-            disabled && styles.labelDisabled,
-            labelStyle,
-          ]}
+          className={clsx(
+            "font-condensed text-body3",
+            selected ? "text-text-primary" : "text-text-secondary",
+            disabled && "text-text-muted",
+            labelClassName
+          )}
         >
           {label}
         </Text>
@@ -69,49 +69,3 @@ export function AppRadio({
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  disabledRadio: {
-    opacity: 0.6,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: COLORS.brand.blue100,
-  },
-  label: {
-    color: COLORS.text.secondary,
-  },
-  labelDisabled: {
-    color: COLORS.text.muted,
-  },
-  labelSelected: {
-    color: COLORS.text.primary,
-  },
-  labelUnselected: {
-    color: COLORS.text.secondary,
-  },
-  radio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: COLORS.base.gray200,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "transparent",
-  },
-  selectedRadio: {
-    borderWidth: 3,
-    borderColor: COLORS.brand.blue100,
-  },
-});
