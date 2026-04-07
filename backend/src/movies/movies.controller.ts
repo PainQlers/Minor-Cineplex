@@ -12,7 +12,8 @@ export class MoviesController {
     return this.moviesService.create(createMovieDto);
   }
 
-  @Get()
+
+  @Get('search')
   async search(@Query('q') q?: string) {
     if (q) {
       return this.moviesService.search(q);

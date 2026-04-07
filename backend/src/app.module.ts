@@ -6,6 +6,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { MoviesModule } from './movies/movies.module';
 import { SupabaseModule } from './libs/supabase/supabase.module';
+import { TheatersModule } from './theaters/theaters.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { SupabaseModule } from './libs/supabase/supabase.module';
     }),
     MoviesModule,
     SupabaseModule,
+    TheatersModule,
   ],
   controllers: [AppController],
   providers: [AppService, SupabaseService],
