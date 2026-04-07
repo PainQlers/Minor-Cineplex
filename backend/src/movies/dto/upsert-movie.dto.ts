@@ -1,4 +1,4 @@
-export interface UpsertMovieDto {
+export class UpsertMovieDto {
   title: string;
   description?: string;
   duration?: string;
