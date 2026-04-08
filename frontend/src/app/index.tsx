@@ -2,10 +2,10 @@ import { Stack } from "expo-router";
 import "./../global.css";
 import { ScrollView, View } from "react-native";
 
-import { HeroBackground } from "@/components/sections/landing/HeroBackground";
-import { LandingNavbar } from "@/components/sections/landing/LandingNavbar";
-import { SearchPanel } from "@/components/sections/landing/SearchPanel";
-import { MoviesSection } from "@/components/sections/landing/MoviesSection";
+import { HeroBackground } from "@/components/landing-page/HeroBackground";
+import { LandingNavbar } from "@/components/landing-page/LandingNavbar";
+import { SearchPanel } from "@/components/landing-page/SearchPanel";
+import { MoviesSection } from "@/components/landing-page/MoviesSection";
 
 
 export default function Index() {
