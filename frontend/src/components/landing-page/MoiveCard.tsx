@@ -1,5 +1,8 @@
 import { Image, Text, View } from "react-native";
 import { Movie } from "@/types/movie";
+import { AppIcon } from "@/components/ui/icon";
+import StarFillIcon from "@/assets/icons/Star_fill.svg";
+import { COLORS } from "@/constants/colors";
 
 export function MovieCard({ movie }: { movie: Movie }) {
   const formatDateManual = (dateStr: string): string => {
@@ -17,10 +20,15 @@ export function MovieCard({ movie }: { movie: Movie }) {
           resizeMode="cover"
         />
       )}
-
-      {!!showDate && (
-        <Text className="mt-2 text-sm text-neutral-400">{showDate}</Text>
-      )}
+      <View className="flex-row items-center justify-between mt-2">
+        {!!showDate && (
+          <Text className="text-sm text-neutral-400">{showDate}</Text>
+        )}
+        <View className="flex-row items-center">
+          <AppIcon icon={StarFillIcon} size={18} color={COLORS.brand.blue100} />
+          <Text className="text-sm text-neutral-400">{movie.rating}</Text>
+        </View>
+      </View>
 
       <Text className="mt-1 text-lg font-semibold text-white">{movie.title}</Text>
     </View>
