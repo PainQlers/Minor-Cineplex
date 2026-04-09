@@ -73,7 +73,7 @@ export function MoviesSection() {
   }, [currentPage, totalPages]);
 
   return (
-    <View className="gap-8 px-0 pt-8">
+    <View className="gap-8 px-0 pt-4">
       <AppTabs
         items={[
           { key: "now-showing", label: "Now Showing" },

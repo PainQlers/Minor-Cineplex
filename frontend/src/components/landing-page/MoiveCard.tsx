@@ -19,7 +19,7 @@ export function MovieCard({ movie }: { movie: Movie }) {
       {!!movie.poster_url && (
         <Image
           source={{ uri: movie.poster_url }}
-          className="h-64 w-full rounded-lg bg-neutral-800"
+          className="h-64 w-full rounded-none bg-neutral-800"
           resizeMode="cover"
         />
       )}
