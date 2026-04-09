@@ -1,15 +1,25 @@
 import { Movie } from "@/types/movie";
-import 'dotenv/config';
 
-const DATABASE_URL = process.env.DATABASE_URL;
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export async function getMovies(): Promise<Movie[]> {
-  const response = await fetch(`${DATABASE_URL}/movies`);
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch movies: ${response.status}`);
+  try {
+    if (!API_BASE_URL) {
+      throw new Error("API base URL is undefined");
+    }
+
+    const response = await fetch(`${API_BASE_URL}/movies`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("movies:", data);
+    return data;
+  } catch (err) {
+    console.error("loadMovies error:", err);
+    throw err;
   }
-
-  const data = await response.json();
-  return data;
 }

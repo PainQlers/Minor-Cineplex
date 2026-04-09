@@ -6,7 +6,8 @@ import { MovieCard } from "@/components/landing-page/MoiveCard";
 import { Movie } from "@/types/movie";
 import { useMemo, useEffect, useState } from "react";
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+import { getMovies } from "@/services/moive.service";
+
 const MOVIES_PER_PAGE = 4;
 
 export function MoviesSection() {
@@ -19,22 +20,9 @@ export function MoviesSection() {
     const loadMovies = async () => {
       try {
         setError("");
-
-        if (!API_BASE_URL) {
-          throw new Error("API base URL is undefined");
-        }
-
-        const response = await fetch(`${API_BASE_URL}/movies`);
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("movies:", data);
+        const data = await getMovies();
         setMovies(data);
       } catch (err) {
-        console.error("loadMovies error:", err);
         setError("can't connect to server");
       }
     };
