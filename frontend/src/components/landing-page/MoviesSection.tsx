@@ -1,14 +1,17 @@
 import { Text, View, FlatList } from "react-native";
 
 import { AppTabs } from "@/components/ui/tab";
+import { AppPagination } from "@/components/ui/pagination";
 import { MovieCard } from "@/components/landing-page/MoiveCard";
 import { Movie } from "@/types/movie";
 import { useMemo, useEffect, useState } from "react";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const MOVIES_PER_PAGE = 4;
 
 export function MoviesSection() {
   const [activeTab, setActiveTab] = useState("now-showing");
+  const [currentPage, setCurrentPage] = useState(1);
   const [movies, setMovies] = useState<Movie[]>([]);
   const [error, setError] = useState("");
 
@@ -63,6 +66,24 @@ export function MoviesSection() {
     });
   }, [movies, activeTab]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredMovies.length / MOVIES_PER_PAGE));
+
+  const paginatedMovies = useMemo(() => {
+    const startIndex = (currentPage - 1) * MOVIES_PER_PAGE;
+
+    return filteredMovies.slice(startIndex, startIndex + MOVIES_PER_PAGE);
+  }, [filteredMovies, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, movies]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   return (
     <View className="gap-8 px-0 pt-8">
       <AppTabs
@@ -77,7 +98,7 @@ export function MoviesSection() {
       {!!error && <Text className="text-red-500">{error}</Text>}
 
       <FlatList
-        data={filteredMovies}
+        data={paginatedMovies}
         renderItem={({ item }) => <MovieCard movie={item} />}
         keyExtractor={(item) => item.id}
         numColumns={2}
@@ -88,6 +109,17 @@ export function MoviesSection() {
           <Text className="text-white">No movies found</Text>
         }
       />
+
+      {filteredMovies.length > MOVIES_PER_PAGE && (
+        <View className="items-center">
+          <AppPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            variant="minimal"
+            onPageChange={setCurrentPage}
+          />
+        </View>
+      )}
     </View>
   );
 }

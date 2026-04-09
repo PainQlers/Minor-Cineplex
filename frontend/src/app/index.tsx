@@ -16,7 +16,7 @@ export default function Index() {
         <HeroBackground>
           <LandingNavbar className="absolute top-0 left-0 right-0 z-10" />
           <View className="px-5 pt-10 gap-8">
-            {/* <HeaderSection /> */}
+
             <SearchPanel />
           </View>
           <MoviesSection />
