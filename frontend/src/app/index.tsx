@@ -7,6 +7,7 @@ import { LandingNavbar } from "@/components/landing-page/LandingNavbar";
 import { SearchPanel } from "@/components/landing-page/SearchPanel";
 import { MoviesSection } from "@/components/landing-page/MoviesSection";
 import { CouponsSection } from "@/components/landing-page/CouponsSection";
+import { TheatersSection } from "@/components/landing-page/TheatersSection";
 
 
 export default function Index() {
@@ -22,6 +23,7 @@ export default function Index() {
           </View>
           <MoviesSection />
           <CouponsSection />
+          <TheatersSection />
         </HeroBackground>
       </ScrollView>
     </>
