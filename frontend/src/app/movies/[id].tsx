@@ -50,7 +50,6 @@ export default function MovieDetailScreen() {
 
     return (
         <>
-            <Stack.Screen options={{ headerShown: false }} />
             <ScrollView className="flex-1 bg-black" contentContainerStyle={{ paddingBottom: 32 }}>
                 <LandingNavbar className="absolute top-0 left-0 right-0 z-10" />
                 {!!movie.poster_url && (
