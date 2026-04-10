@@ -1,7 +1,6 @@
 import React from "react";
-import { ScrollView, Text, View, StyleSheet } from "react-native";
+import { ScrollView, View, StyleSheet } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { TYPOGRAPHY } from "../../constants/typography";
 import { MovieCard } from "../ui/movie-card";
 import { SectionHeader } from "../ui/section-header";
 import { BranchCard } from "../ui/branch-card";
