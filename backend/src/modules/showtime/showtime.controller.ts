@@ -14,12 +14,12 @@ export class ShowtimeController {
 
   @Get()
   async findAll() {
-    return this.showtimeService.findAll();
+    return this.showtimeService.findAll(); // หารอบฉายทั้งหมด
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.showtimeService.findByHall(id);
+    return this.showtimeService.findByHall(id); // หาจาก id hall
   }
 
   @Patch(':id')

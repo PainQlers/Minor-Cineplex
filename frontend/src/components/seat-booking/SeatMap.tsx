@@ -1,20 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { cn } from "../../../lib/utils";
 import SeatIcon, { SeatStatus } from "./SeatIcon";
+import { getSeatByHallId } from "@/services/seat.service";
+import { useLocalSearchParams } from "expo-router";
+import { Seat as APISeat } from "@/types/seat";
+import { getShowtimeById } from "@/services/showtime.service";
 
 type RowData = Record<string, SeatStatus[]>;
 
-// a=available, b=booked, r=reserved, s=selected
-const INITIAL_LAYOUT: RowData = {
-  E: ["available", "available", "booked", "available", "available", "available", "available", "available", "available", "available"],
-  D: ["available", "available", "available", "available", "available", "available", "available", "available", "available", "available"],
-  C: ["available", "reserved", "reserved", "available", "available", "booked", "available", "available", "selected", "selected"],
-  B: ["booked", "booked", "booked", "available", "available", "available", "available", "available", "booked", "booked"],
-  A: ["available", "available", "available", "reserved", "available", "available", "available", "reserved", "available", "available"],
-};
-
-const ROW_ORDER = ["E", "D", "C", "B", "A"];
+// default fallback layout used while loading / if API returns nothing
+const DEFAULT_ROWS = ["E", "D", "C", "B", "A"];
+const DEFAULT_SEATS_PER_ROW = 10;
 
 interface SeatMapProps {
   pricePerSeat: number;
@@ -22,7 +19,76 @@ interface SeatMapProps {
 }
 
 export default function SeatMap({ pricePerSeat, onSelectionChange }: SeatMapProps) {
-  const [layout, setLayout] = useState<RowData>(INITIAL_LAYOUT);
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [layout, setLayout] = useState<RowData>(() => {
+    const base: RowData = {};
+    DEFAULT_ROWS.forEach((r) => (base[r] = Array.from({ length: DEFAULT_SEATS_PER_ROW }, () => "available")));
+    return base;
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!id) return;
+
+    const loadSeat = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const hallData = (await getShowtimeById(id));
+        const record = Array.isArray(hallData) ? hallData[2] : hallData;
+        let hallId = record?.halls_id ?? "";
+        const data = (await getSeatByHallId(hallId)) as APISeat[]; // expected API shape: array of seat objects
+        const newLayout = buildLayoutFromApi(data);
+        setLayout(newLayout);
+      } catch (err) {
+        console.error("loadSeat error:", err);
+        setError("โหลดรายละเอียดที่นั่งไม่สำเร็จ");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadSeat();
+  }, [id]);
+
+  function buildLayoutFromApi(seats: APISeat[]): RowData {
+    const rows: Record<string, SeatStatus[]> = {};
+    let maxIndex = DEFAULT_SEATS_PER_ROW;
+
+    seats.forEach((s) => {
+      const sn = s.seat_number;
+      if (!sn) return;
+      const m = sn.match(/^([A-Z])(\d+)$/i);
+      if (!m) return;
+      const row = m[1].toUpperCase();
+      const idx = parseInt(m[2], 10);
+      maxIndex = Math.max(maxIndex, idx);
+      if (!rows[row]) rows[row] = [];
+      // default to available — if your API later includes a `status` field use it here
+      rows[row][idx - 1] = "available";
+    });
+
+    // normalize lengths and fill gaps with available
+    Object.keys(rows).forEach((r) => {
+      rows[r] = Array.from({ length: maxIndex }, (_, i) => rows[r][i] ?? "available");
+    });
+
+    // keep consistent row order: prefer DEFAULT_ROWS, then any others sorted descending
+    const ordered: RowData = {};
+    const preferred = DEFAULT_ROWS.filter((r) => rows[r]);
+    if (preferred.length) {
+      preferred.forEach((r) => (ordered[r] = rows[r]));
+    }
+    Object.keys(rows)
+      .filter((r) => !preferred.includes(r))
+      .sort()
+      .reverse()
+      .forEach((r) => (ordered[r] = rows[r]));
+
+    return ordered;
+  }
+
+  const ROW_ORDER = Object.keys(layout);
 
   const handleSeatClick = (row: string, seatIndex: number) => {
     const current = layout[row][seatIndex];
@@ -56,17 +122,21 @@ export default function SeatMap({ pricePerSeat, onSelectionChange }: SeatMapProp
           <View key={row} className="flex-row items-center justify-center gap-[5px]">
             <Text className="text-gray-500 text-[11px] w-3.5 text-center flex-shrink-0 font-medium">{row}</Text>
 
+            {/* left side */}
+
             <View className="flex-row gap-[3px]">
-              {layout[row].slice(0, 5).map((status, i) => (
+              {layout[row].slice(0, Math.ceil(layout[row].length / 2)).map((status, i) => (
                 <SeatButton key={i} status={status} onPress={() => handleSeatClick(row, i)} />
               ))}
             </View>
 
+            {/* right side */}
+
             <View className="w-3 flex-shrink-0" />
 
             <View className="flex-row gap-[3px]">
-              {layout[row].slice(5).map((status, i) => (
-                <SeatButton key={i + 5} status={status} onPress={() => handleSeatClick(row, i + 5)} />
+              {layout[row].slice(Math.ceil(layout[row].length / 2)).map((status, i) => (
+                <SeatButton key={i + Math.ceil(layout[row].length / 2)} status={status} onPress={() => handleSeatClick(row, i + Math.ceil(layout[row].length / 2))} />
               ))}
             </View>
 
