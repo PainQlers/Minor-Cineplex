@@ -7,6 +7,9 @@ import { ConfigModule } from '@nestjs/config';
 import { MoviesModule } from './movies/movies.module';
 import { SupabaseModule } from './libs/supabase/supabase.module';
 import { TheatersModule } from './theaters/theaters.module';
+import { ShowtimeModule } from './modules/showtime/showtime.module';
+import { SeatModule } from './modules/seat/seat.module';
+import { HallModule } from './modules/hall/hall.module';
 
 @Module({
   imports: [
@@ -17,6 +20,9 @@ import { TheatersModule } from './theaters/theaters.module';
     MoviesModule,
     SupabaseModule,
     TheatersModule,
+    ShowtimeModule,
+    SeatModule,
+    HallModule
   ],
   controllers: [AppController],
   providers: [AppService, SupabaseService],
