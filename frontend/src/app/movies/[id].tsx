@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Movie } from "@/types/movie";
-import { getMovieById } from "@/services/moive.service";
+import { getMovieById } from "@/services/movie.service";
 import { Stack } from "expo-router";
 import { LandingNavbar } from "@/components/landing-page/LandingNavbar";
 
