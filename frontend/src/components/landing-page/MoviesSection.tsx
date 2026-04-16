@@ -6,7 +6,7 @@ import { MovieCard } from "@/components/landing-page/MoiveCard";
 import { Movie } from "@/types/movie";
 import { useMemo, useEffect, useState } from "react";
 
-import { getMovies } from "@/services/moive.service";
+import { getMovies } from "@/services/movie.service";
 
 const MOVIES_PER_PAGE = 4;
 
