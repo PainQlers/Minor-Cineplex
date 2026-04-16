@@ -6,6 +6,7 @@ import PinFillIcon from "@/assets/icons/pin_fill.svg";
 export interface TheaterCardProps {
   name: string;
   address: string;
+  mapUrl?: string | null;
   onPress?: () => void;
 }
 
@@ -14,11 +15,14 @@ const noop = () => {};
 export function TheaterCard({
   name,
   address,
+  // mapUrl,
   onPress = noop,
 }: TheaterCardProps) {
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      // accessibilityHint={mapUrl ? "Opens theater location in maps" : undefined}
       className="flex-row items-center gap-4 rounded-lg border border-base-gray100 bg-surface-canvas px-4 py-5"
     >
       <View className="h-12 w-12 items-center justify-center rounded-full bg-base-gray100">
@@ -39,6 +43,9 @@ export function TheaterCard({
         >
           {address}
         </Text>
+        {/* <Text className="font-bodyMedium text-body3 text-brand-blue100">
+          {mapUrl ? "Open in Maps" : "Map unavailable"}
+        </Text> */}
       </View>
     </Pressable>
   );
