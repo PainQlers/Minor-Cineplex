@@ -23,12 +23,12 @@ export function TheaterCard({
       onPress={onPress}
       accessibilityRole="button"
       // accessibilityHint={mapUrl ? "Opens theater location in maps" : undefined}
-      className="flex-row items-center gap-4 rounded-lg border border-base-gray100 bg-surface-canvas px-4 py-5"
+      className="flex-row items-center gap-4 rounded-lg border border-base-gray100 bg-surface-canvas px-3 py-3"
     >
       <View className="h-12 w-12 items-center justify-center rounded-full bg-base-gray100">
         <AppIcon
           icon={PinFillIcon}
-          size={20}
+          size={32}
           color="#4E7BEE"
         />
       </View>

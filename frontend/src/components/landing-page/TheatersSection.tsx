@@ -205,14 +205,14 @@ export function TheatersSection() {
 
         {!isLoading && !error
           ? paginatedGroups.map((group) => (
-              <View key={group.province} className="gap-4">
+              <View key={group.province} className="gap-4 mt-3">
                 <View className="flex-row items-center justify-between gap-3">
                   <Text className="font-condensedBold text-headline4 text-text-muted">
                     {group.province}
                   </Text>
-                  <Text className="font-body text-body3 text-text-secondary">
+                  {/* <Text className="font-body text-body3 text-text-secondary">
                     {group.theaters.length} cinemas
-                  </Text>
+                  </Text> */}
                 </View>
 
                 <View className="gap-3">
