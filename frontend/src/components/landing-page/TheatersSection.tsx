@@ -10,11 +10,103 @@ import { Theater } from "@/types/theater";
 import DoneRoundLightIcon from "@/assets/icons/done_round_light.svg";
 
 const THEATERS_PER_PAGE = 4;
+const LOCATION_PROMPT_SEEN_KEY = "minorcineplex.location_prompt_seen";
+const EARTH_RADIUS_KM = 6371;
 
 type TheaterGroup = {
   province: string;
   theaters: Theater[];
 };
+
+type SortMode = "city" | "nearest";
+
+type GeoPoint = {
+  lat: number;
+  lng: number;
+};
+
+type NearbyTheater = Theater & {
+  distanceKm: number;
+};
+
+function hasSeenLocationPrompt(): boolean {
+  try {
+    return globalThis.localStorage?.getItem(LOCATION_PROMPT_SEEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markLocationPromptSeen() {
+  try {
+    globalThis.localStorage?.setItem(LOCATION_PROMPT_SEEN_KEY, "1");
+  } catch {}
+}
+
+function toRadians(value: number) {
+  return (value * Math.PI) / 180;
+}
+
+function getDistanceInKm(from: GeoPoint, to: GeoPoint) {
+  const dLat = toRadians(to.lat - from.lat);
+  const dLng = toRadians(to.lng - from.lng);
+
+  const lat1 = toRadians(from.lat);
+  const lat2 = toRadians(to.lat);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return EARTH_RADIUS_KM * c;
+}
+
+function extractCoordinatesFromMapUrl(mapUrl?: string | null): GeoPoint | null {
+  if (!mapUrl) {
+    return null;
+  }
+
+  const directMatch = mapUrl.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+
+  if (directMatch) {
+    return {
+      lat: Number(directMatch[1]),
+      lng: Number(directMatch[2]),
+    };
+  }
+
+  const atMatch = mapUrl.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+
+  if (atMatch) {
+    return {
+      lat: Number(atMatch[1]),
+      lng: Number(atMatch[2]),
+    };
+  }
+
+  try {
+    const parsed = new URL(mapUrl);
+    const coordinateText = parsed.searchParams.get("q") ?? parsed.searchParams.get("query");
+
+    if (!coordinateText) {
+      return null;
+    }
+
+    const qMatch = coordinateText.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
+
+    if (!qMatch) {
+      return null;
+    }
+
+    return {
+      lat: Number(qMatch[1]),
+      lng: Number(qMatch[2]),
+    };
+  } catch {
+    return null;
+  }
+}
 
 function groupTheatersByProvince(theaters: Theater[]): TheaterGroup[] {
   const grouped = theaters.reduce<Record<string, Theater[]>>((acc, theater) => {
@@ -42,6 +134,8 @@ export function TheatersSection() {
   const [theaterGroups, setTheaterGroups] = useState<TheaterGroup[]>([]);
   const [provincePages, setProvincePages] = useState<Record<string, number>>({});
   const [isLocationPromptVisible, setIsLocationPromptVisible] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>("city");
+  const [userLocation, setUserLocation] = useState<GeoPoint | null>(null);
   const hasShownLocationPromptRef = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +146,12 @@ export function TheatersSection() {
     }
 
     hasShownLocationPromptRef.current = true;
+
+    if (hasSeenLocationPrompt()) {
+      return;
+    }
+
+    markLocationPromptSeen();
     setIsLocationPromptVisible(true);
   }, []);
 
@@ -63,10 +163,7 @@ export function TheatersSection() {
         setIsLoading(true);
         setError(null);
 
-        const keyword = "";
-        const theaters = keyword
-          ? await searchTheaters(keyword)
-          : await getTheaters();
+        const theaters = await getTheaters();
 
         if (!isMounted) {
           return;
@@ -125,6 +222,30 @@ export function TheatersSection() {
     });
   }, [provincePages, theaterGroups]);
 
+  const nearestTheaters = useMemo<NearbyTheater[]>(() => {
+    if (!userLocation) {
+      return [];
+    }
+
+    return theaterGroups
+      .flatMap((group) => group.theaters)
+      .map((theater) => {
+        const coordinates = extractCoordinatesFromMapUrl(theater.google_map_url);
+
+        if (!coordinates) {
+          return null;
+        }
+
+        return {
+          ...theater,
+          distanceKm: getDistanceInKm(userLocation, coordinates),
+        };
+      })
+      .filter((theater): theater is NearbyTheater => theater !== null)
+      .sort((theaterA, theaterB) => theaterA.distanceKm - theaterB.distanceKm)
+      .slice(0, 4);
+  }, [theaterGroups, userLocation]);
+
   const handleProvincePageChange = (province: string, page: number) => {
     setProvincePages((currentPages) => ({
       ...currentPages,
@@ -149,6 +270,7 @@ export function TheatersSection() {
   };
 
   const closeLocationPrompt = () => {
+    markLocationPromptSeen();
     setIsLocationPromptVisible(false);
   };
 
@@ -163,12 +285,13 @@ export function TheatersSection() {
     }
 
     globalThis.navigator.geolocation.getCurrentPosition(
-      () => {
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setSortMode("nearest");
         closeLocationPrompt();
-        Alert.alert(
-          "Location enabled",
-          "We can request your location now. Connect theater coordinates next to sort by nearest distance."
-        );
       },
       () => {
         closeLocationPrompt();
@@ -185,6 +308,19 @@ export function TheatersSection() {
     );
   };
 
+  const handleBrowseByCityPress = () => {
+    setSortMode("city");
+  };
+
+  const handleNearestLocationsPress = () => {
+    if (userLocation) {
+      setSortMode("nearest");
+      return;
+    }
+
+    setIsLocationPromptVisible(true);
+  };
+
   return (
     <View className="gap-2 pb-2 pt-2">
       <Text className="font-condensedBold text-headline2 text-text-primary">
@@ -192,22 +328,38 @@ export function TheatersSection() {
       </Text>
 
       <View className="flex-row items-center gap-1 rounded-lg bg-base-gray100 px-1">
-        <Pressable className="flex-1 flex-row items-center justify-center gap-2 rounded-md bg-base-gray200 py-3 my-1">
-          <AppIcon
-            icon={DoneRoundLightIcon}
-            size={20}
-            color="#FFFFFF"
-          />
+        <Pressable
+          className={`my-1 flex-row items-center justify-center gap-2 rounded-md py-3 px-4 ${
+            sortMode === "city" ? "bg-base-gray200 flex-1" : ""
+          }`}
+          onPress={handleBrowseByCityPress}
+        >
+          {sortMode === "city" ? (
+            <AppIcon
+              icon={DoneRoundLightIcon}
+              size={20}
+              color="#FFFFFF"
+            />
+          ) : null}
           <Text className="font-condensedBold text-body1medium text-text-secondary">
             Browse by City
           </Text>
         </Pressable>
 
         <Pressable
-          className="flex-1 items-center justify-center rounded-md my-1"
-          onPress={() => setIsLocationPromptVisible(true)}
+          className={`my-1 flex-row items-center justify-center rounded-md py-3 px-2 ${
+            sortMode === "nearest" ? "bg-base-gray200 flex-1" : ""
+          }`}
+          onPress={handleNearestLocationsPress}
         >
-          <Text className="font-condensedBold text-body1medium text-text-secondary">
+          {sortMode === "nearest" ? (
+            <AppIcon
+              icon={DoneRoundLightIcon}
+              size={20}
+              color="#FFFFFF"
+            />
+          ) : null}
+          <Text className="font-condensedBold text-body1medium text-text-secondary px-2">
             Nearest Locations First
           </Text>
         </Pressable>
@@ -250,16 +402,35 @@ export function TheatersSection() {
           </Text>
         ) : null}
 
-        {!isLoading && !error
+        {!isLoading && !error && sortMode === "nearest" ? (
+          <View className="mt-3 gap-3">
+            {nearestTheaters.length === 0 ? (
+              <Text className="font-body text-body3 text-text-muted">
+                No nearby theaters available yet. Some locations may be missing map coordinates.
+              </Text>
+            ) : (
+              nearestTheaters.map((theater) => (
+                <TheaterCard
+                  key={theater.id}
+                  name={theater.name}
+                  address={theater.address ?? "Address unavailable"}
+                  mapUrl={theater.google_map_url}
+                  onPress={() => {
+                    void handleOpenMap(theater);
+                  }}
+                />
+              ))
+            )}
+          </View>
+        ) : null}
+
+        {!isLoading && !error && sortMode === "city"
           ? paginatedGroups.map((group) => (
-              <View key={group.province} className="gap-4 mt-3">
+              <View key={group.province} className="mt-3 gap-4">
                 <View className="flex-row items-center justify-between gap-3">
                   <Text className="font-condensedBold text-headline4 text-text-muted">
                     {group.province}
                   </Text>
-                  {/* <Text className="font-body text-body3 text-text-secondary">
-                    {group.theaters.length} cinemas
-                  </Text> */}
                 </View>
 
                 <View className="gap-3">
