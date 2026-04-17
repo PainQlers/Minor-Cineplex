@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Linking, Pressable, Text, View } from "react-native";
 
 import { TheaterCard } from "@/components/landing-page/TheaterCard";
-import { AppInputField } from "@/components/ui/input-field";
 import { AppIcon } from "@/components/ui/icon";
+import { LocationPermissionPrompt } from "@/components/ui/location-permission-prompt";
 import { AppPagination } from "@/components/ui/pagination";
-import { getTheaters, searchTheaters } from "@/services/theater.service";
+import { getTheaters } from "@/services/theater.service";
 import { Theater } from "@/types/theater";
 import DoneRoundLightIcon from "@/assets/icons/done_round_light.svg";
 
@@ -39,22 +39,21 @@ function groupTheatersByProvince(theaters: Theater[]): TheaterGroup[] {
 }
 
 export function TheatersSection() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [theaterGroups, setTheaterGroups] = useState<TheaterGroup[]>([]);
   const [provincePages, setProvincePages] = useState<Record<string, number>>({});
+  const [isLocationPromptVisible, setIsLocationPromptVisible] = useState(false);
+  const hasShownLocationPromptRef = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 250);
+    if (hasShownLocationPromptRef.current) {
+      return;
+    }
 
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [searchQuery]);
+    hasShownLocationPromptRef.current = true;
+    setIsLocationPromptVisible(true);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -64,7 +63,7 @@ export function TheatersSection() {
         setIsLoading(true);
         setError(null);
 
-        const keyword = debouncedQuery.trim();
+        const keyword = "";
         const theaters = keyword
           ? await searchTheaters(keyword)
           : await getTheaters();
@@ -102,7 +101,7 @@ export function TheatersSection() {
     return () => {
       isMounted = false;
     };
-  }, [debouncedQuery]);
+  }, []);
 
   const paginatedGroups = useMemo(() => {
     return theaterGroups.map((group) => {
@@ -149,6 +148,43 @@ export function TheatersSection() {
     await Linking.openURL(theater.google_map_url);
   };
 
+  const closeLocationPrompt = () => {
+    setIsLocationPromptVisible(false);
+  };
+
+  const requestBrowserLocation = () => {
+    if (!globalThis.navigator?.geolocation) {
+      Alert.alert(
+        "Location unavailable",
+        "This device or browser does not support location access yet."
+      );
+      closeLocationPrompt();
+      return;
+    }
+
+    globalThis.navigator.geolocation.getCurrentPosition(
+      () => {
+        closeLocationPrompt();
+        Alert.alert(
+          "Location enabled",
+          "We can request your location now. Connect theater coordinates next to sort by nearest distance."
+        );
+      },
+      () => {
+        closeLocationPrompt();
+        Alert.alert(
+          "Location blocked",
+          "We could not access your location. Please try again if you change your mind."
+        );
+      },
+      {
+        enableHighAccuracy: false,
+        maximumAge: 300000,
+        timeout: 10000,
+      }
+    );
+  };
+
   return (
     <View className="gap-2 pb-2 pt-2">
       <Text className="font-condensedBold text-headline2 text-text-primary">
@@ -167,12 +203,23 @@ export function TheatersSection() {
           </Text>
         </Pressable>
 
-        <Pressable className="flex-1 items-center justify-center rounded-md my-1">
+        <Pressable
+          className="flex-1 items-center justify-center rounded-md my-1"
+          onPress={() => setIsLocationPromptVisible(true)}
+        >
           <Text className="font-condensedBold text-body1medium text-text-secondary">
             Nearest Locations First
           </Text>
         </Pressable>
       </View>
+
+      <LocationPermissionPrompt
+        visible={isLocationPromptVisible}
+        onClose={closeLocationPrompt}
+        onAllowWhileVisiting={requestBrowserLocation}
+        onAllowThisTime={requestBrowserLocation}
+        onDeny={closeLocationPrompt}
+      />
 {/* 
       <AppInputField
         label="Search theaters"
