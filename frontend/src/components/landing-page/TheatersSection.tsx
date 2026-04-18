@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Linking, Pressable, Text, View } from "react-native";
+import * as Location from "expo-location";
 
 import { TheaterCard } from "@/components/landing-page/TheaterCard";
 import { AppIcon } from "@/components/ui/icon";
@@ -274,38 +275,36 @@ export function TheatersSection() {
     setIsLocationPromptVisible(false);
   };
 
-  const requestBrowserLocation = () => {
-    if (!globalThis.navigator?.geolocation) {
-      Alert.alert(
-        "Location unavailable",
-        "This device or browser does not support location access yet."
-      );
-      closeLocationPrompt();
-      return;
-    }
+  const requestDeviceLocation = async () => {
+    try {
+      const permissionResult = await Location.requestForegroundPermissionsAsync();
 
-    globalThis.navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-        setSortMode("nearest");
-        closeLocationPrompt();
-      },
-      () => {
+      if (permissionResult.status !== "granted") {
         closeLocationPrompt();
         Alert.alert(
           "Location blocked",
           "We could not access your location. Please try again if you change your mind."
         );
-      },
-      {
-        enableHighAccuracy: false,
-        maximumAge: 300000,
-        timeout: 10000,
+        return;
       }
-    );
+
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      setUserLocation({
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      });
+      setSortMode("nearest");
+      closeLocationPrompt();
+    } catch {
+      closeLocationPrompt();
+      Alert.alert(
+        "Location unavailable",
+        "This device or browser does not support location access yet."
+      );
+    }
   };
 
   const handleBrowseByCityPress = () => {
@@ -368,8 +367,12 @@ export function TheatersSection() {
       <LocationPermissionPrompt
         visible={isLocationPromptVisible}
         onClose={closeLocationPrompt}
-        onAllowWhileVisiting={requestBrowserLocation}
-        onAllowThisTime={requestBrowserLocation}
+        onAllowWhileVisiting={() => {
+          void requestDeviceLocation();
+        }}
+        onAllowThisTime={() => {
+          void requestDeviceLocation();
+        }}
         onDeny={closeLocationPrompt}
       />
 {/* 
