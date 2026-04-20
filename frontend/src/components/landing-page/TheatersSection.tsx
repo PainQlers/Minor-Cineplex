@@ -9,9 +9,12 @@ import { AppPagination } from "@/components/ui/pagination";
 import { getTheaters } from "@/services/theater.service";
 import { Theater } from "@/types/theater";
 import DoneRoundLightIcon from "@/assets/icons/done_round_light.svg";
+import {
+  hasSeenLocationPrompt,
+  markLocationPromptSeen,
+} from "@/lib/storage";
 
 const THEATERS_PER_PAGE = 4;
-const LOCATION_PROMPT_SEEN_KEY = "minorcineplex.location_prompt_seen";
 const EARTH_RADIUS_KM = 6371;
 
 type TheaterGroup = {
@@ -29,20 +32,6 @@ type GeoPoint = {
 type NearbyTheater = Theater & {
   distanceKm: number;
 };
-
-function hasSeenLocationPrompt(): boolean {
-  try {
-    return globalThis.localStorage?.getItem(LOCATION_PROMPT_SEEN_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function markLocationPromptSeen() {
-  try {
-    globalThis.localStorage?.setItem(LOCATION_PROMPT_SEEN_KEY, "1");
-  } catch {}
-}
 
 function toRadians(value: number) {
   return (value * Math.PI) / 180;
@@ -146,14 +135,15 @@ export function TheatersSection() {
       return;
     }
 
-    hasShownLocationPromptRef.current = true;
+    const checkAndShowPrompt = async () => {
+      const hasSeen = await hasSeenLocationPrompt();
+      if (!hasSeen) {
+        hasShownLocationPromptRef.current = true;
+        setIsLocationPromptVisible(true);
+      }
+    };
 
-    if (hasSeenLocationPrompt()) {
-      return;
-    }
-
-    markLocationPromptSeen();
-    setIsLocationPromptVisible(true);
+    void checkAndShowPrompt();
   }, []);
 
   useEffect(() => {
@@ -270,8 +260,8 @@ export function TheatersSection() {
     await Linking.openURL(theater.google_map_url);
   };
 
-  const closeLocationPrompt = () => {
-    markLocationPromptSeen();
+  const closeLocationPrompt = async () => {
+    await markLocationPromptSeen();
     setIsLocationPromptVisible(false);
   };
 
@@ -280,7 +270,8 @@ export function TheatersSection() {
       const permissionResult = await Location.requestForegroundPermissionsAsync();
 
       if (permissionResult.status !== "granted") {
-        closeLocationPrompt();
+        await markLocationPromptSeen();
+        setIsLocationPromptVisible(false);
         Alert.alert(
           "Location blocked",
           "We could not access your location. Please try again if you change your mind."
@@ -297,9 +288,11 @@ export function TheatersSection() {
         lng: position.coords.longitude,
       });
       setSortMode("nearest");
-      closeLocationPrompt();
+      await markLocationPromptSeen();
+      setIsLocationPromptVisible(false);
     } catch {
-      closeLocationPrompt();
+      await markLocationPromptSeen();
+      setIsLocationPromptVisible(false);
       Alert.alert(
         "Location unavailable",
         "This device or browser does not support location access yet."
