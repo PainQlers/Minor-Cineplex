@@ -70,21 +70,20 @@ export function AppButton({
       onPress={onPress}
       className={clsx(
         "items-center justify-center",
-        isLink ? "self-start min-h-6" : "rounded min-h-12 min-w-[123px] px-10 py-3",
+        isLink
+          ? "self-start min-h-6"
+          : "rounded min-h-12 min-w-[123px] px-10 py-3",
         v.container,
         disabled && "opacity-40",
-        className
+        className,
       )}
     >
       {children ? (
         children
       ) : hasLabel ? (
         <Text
-          className={clsx(
-            "text-base font-semibold",
-            v.label,
-            labelClassName
-          )}
+          numberOfLines={1}
+          className={clsx("text-base font-semibold", v.label, labelClassName)}
         >
           {label}
         </Text>

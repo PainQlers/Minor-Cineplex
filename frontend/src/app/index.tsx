@@ -3,12 +3,11 @@ import "./../global.css";
 import { ScrollView, View } from "react-native";
 
 import { HeroBackground } from "@/components/landing-page/HeroBackground";
-import { LandingNavbar } from "@/components/landing-page/LandingNavbar";
 import { SearchPanel } from "@/components/landing-page/SearchPanel";
 import { MoviesSection } from "@/components/landing-page/MoviesSection";
 import { CouponsSection } from "@/components/landing-page/CouponsSection";
 import { TheatersSection } from "@/components/landing-page/TheatersSection";
-
+import { FooterLanding } from "@/components/landing-page/FooterLanding";
 
 export default function Index() {
   return (
@@ -23,6 +22,7 @@ export default function Index() {
           <CouponsSection />
           <TheatersSection />
         </HeroBackground>
+        <FooterLanding />
       </ScrollView>
     </>
   );

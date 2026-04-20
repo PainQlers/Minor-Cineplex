@@ -93,7 +93,7 @@ export function CouponCard({
         <AppButton
           label="Get coupon"
           onPress={onPress}
-          className="flex-row min-w-[120px] rounded-[4px] bg-brand-blue100 px-2 m-2"
+          className="flex-row w-full rounded-[4px] bg-brand-blue100 px-2"
           labelClassName="text-body2regular font-bodyMedium"
         />
       </View>
