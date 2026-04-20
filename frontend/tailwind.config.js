@@ -40,6 +40,7 @@ module.exports = {
         },
       },
 
+      // Font families #ex. font-body, font-bodyMedium
       fontFamily: {
         body: ["Roboto_400Regular"],
         bodyMedium: ["Roboto_500Medium"],
@@ -48,6 +49,7 @@ module.exports = {
         condensedBold: ["RobotoCondensed_700Bold"],
       },
 
+      // Font sizes #ex. text-body1medium
       fontSize: {
         screenTitle: ["32px", { lineHeight: "40px" }],
         sectionTitle: ["20px", { lineHeight: "28px" }],

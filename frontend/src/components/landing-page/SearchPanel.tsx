@@ -38,7 +38,7 @@ function SearchSelectField({
         className
       )}
     >
-      <Text className="font-condensed text-body1regular text-base-gray300">
+      <Text numberOfLines={1} className="font-condensed text-body1regular text-base-gray300">
         {label}
       </Text>
 
