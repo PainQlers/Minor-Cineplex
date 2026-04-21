@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, Platform } from "react-native";
 import clsx from "clsx";
 import { Image } from "expo-image";
 import { BlurView } from "expo-blur";
@@ -45,7 +45,13 @@ export function AppNavbar({
       <BlurView intensity={30} tint="dark" className="absolute inset-0" />
       {/* Left: Logo */}
       <Pressable
-        onPress={() => router.push('/')}
+        onPress={() => {
+          if (Platform.OS === "web") {
+            window.location.href = "/";
+          } else {
+            router.push("/");
+          }
+        }}
         className="p-2 items-center justify-center"
       >
         {logo ? (

@@ -1,4 +1,4 @@
-import { Image, Text, View, Pressable } from "react-native";
+import { Image, Text, View, Pressable, Platform } from "react-native";
 import { Movie } from "@/types/movie";
 import { AppIcon } from "@/components/ui/icon";
 import StarFillIcon from "@/assets/icons/Star_fill.svg";
@@ -15,7 +15,13 @@ export function MovieCard({ movie }: { movie: Movie }) {
   };
   const showDate = movie.show_date ? formatDateManual(movie.show_date) : null;
   return (
-    <Pressable onPress={() => router.push(`/movies/${movie.id}`)} className="flex-1">
+    <Pressable onPress={() => {
+      if (Platform.OS === "web") {
+        window.location.href = `/movies/${movie.id}`;
+      } else {
+        router.push(`/movies/${movie.id}`);
+      }
+    }} className="flex-1">
       {!!movie.poster_url && (
         <Image
           source={{ uri: movie.poster_url }}

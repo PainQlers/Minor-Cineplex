@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { FlatList, Text, View, ActivityIndicator, Pressable, Platform } from "react-native";
 import { useRouter } from "expo-router";
+
 import { CouponCard } from "@/components/landing-page/CouponCard";
 import { getCoupons } from "@/services/coupon.service";
 import { Coupon } from "@/types/coupon";
+import { Ionicons } from "@expo/vector-icons";
 
-
-export function CouponsSection() {
+export default function CouponsPage() {
   const router = useRouter();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +32,7 @@ export function CouponsSection() {
 
   if (isLoading) {
     return (
-      <View className="items-center justify-center py-8">
+      <View className="flex-1 bg-base-gray0 items-center justify-center">
         <ActivityIndicator size="large" color="#3B82F6" />
       </View>
     );
@@ -39,38 +40,40 @@ export function CouponsSection() {
 
   if (error) {
     return (
-      <View className="items-center justify-center py-8">
+      <View className="flex-1 bg-base-gray0 items-center justify-center">
         <Text className="text-red-400">{error}</Text>
       </View>
     );
   }
 
   return (
-    <View className="gap-6 pb-4 pt-4">
-      <View className="flex-row items-center justify-between">
-        <Text className="text-2xl font-bold text-white">Special coupons</Text>
-        <Pressable
+    <View className="flex-1 bg-base-gray0">
+      {/* Header */}
+      <View className="flex-row items-center px-5 pt-14 pb-4">
+        <Pressable 
           onPress={() => {
             if (Platform.OS === 'web') {
-              window.location.href = '/coupons';
+              window.location.href = '/';
             } else {
-              router.push('/coupons');
+              router.push('/');
             }
           }}
+          className="mr-4"
         >
-          <Text className="text-base font-semibold text-base-white">
-            View all
-          </Text>
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </Pressable>
+        <Text className="text-sectionTitle font-condensed text-white">
+          All Coupons
+        </Text>
       </View>
 
+      {/* Coupons Grid */}
       <FlatList
-        data={coupons.slice(0, 4)}
+        data={coupons}
         keyExtractor={(item) => item.id}
         numColumns={2}
-        scrollEnabled={false}
-        columnWrapperStyle={{ gap: 14 }}
-        contentContainerStyle={{ gap: 14 }}
+        columnWrapperStyle={{ gap: 14, paddingHorizontal: 20 }}
+        contentContainerStyle={{ gap: 14, paddingVertical: 20 }}
         renderItem={({ item }) => (
           <CouponCard
             coupon={item}

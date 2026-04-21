@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Text } from 'react-native';
+import { ScrollView, View, Text, Pressable, Platform } from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 
@@ -32,9 +32,8 @@ const Register = () => {
     password: null,
   });
 
-  const router = useRouter();
-
   const [submitted, setSubmitted] = useState(false);
+  const router = useRouter();
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -146,10 +145,14 @@ const Register = () => {
             <Text className="text-[#8b93b0] text-xs text-center px-1 leading-5">
               Already have an account?
             </Text>
-            <Text className='text-white text-xs text-center px-1 leading-5 underline'
-            onPress={() => router.push('/screens/Login')}>
+            <Pressable onPress={() => Platform.select({
+              web: () => window.location.href = '/screens/Login',
+              default: () => router.push('/screens/Login')
+            })}>
+              <Text className="text-white text-xs text-center px-1 leading-5 underline">
                 Login
               </Text>
+            </Pressable>
           </View>
       </ScrollView>
     </View>
