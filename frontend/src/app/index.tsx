@@ -14,10 +14,7 @@ export default function Index() {
     <>
       <ScrollView className="flex-1 bg-base-gray0">
         <HeroBackground>
-          <View className="px-5 pt-10 gap-8">
-
-            <SearchPanel />
-          </View>
+          <SearchPanel />
           <MoviesSection />
           <CouponsSection />
           <TheatersSection />

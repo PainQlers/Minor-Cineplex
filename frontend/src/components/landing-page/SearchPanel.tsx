@@ -65,7 +65,7 @@ export function SearchPanel({
   return (
     <View
       className={clsx(
-        "mt-6 rounded bg-base-gray0 px-4 py-4 shadow-lg",
+        "mt-20 mb-6 rounded bg-base-gray0 px-2 pt-4 pb-8 shadow-lg",
         className
       )}
     >
