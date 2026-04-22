@@ -26,6 +26,56 @@ export class ShowtimeService {
     return data;
   }
 
+  async findUpcoming(days = 7) {
+    const supabase = this.supabaseService.getClient();
+    const now = new Date();
+    const end = new Date(now);
+    end.setDate(end.getDate() + days);
+
+    const { data, error } = await supabase
+      .from('showtimes')
+      .select(
+        `
+        *,
+        movies (
+          id,
+          title,
+          description,
+          duration,
+          genre,
+          show_date,
+          poster_url,
+          created_at,
+          link,
+          rating,
+          trailer_url
+        ),
+        halls (
+          id,
+          name,
+          theater_id,
+          theaters (
+            id,
+            name,
+            locate_part,
+            link,
+            address,
+            google_map_url
+          )
+        )
+      `
+      )
+      .gte('start_time', now.toISOString())
+      .lt('start_time', end.toISOString())
+      .order('start_time', { ascending: true });
+
+    if (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+
+    return data;
+  }
+
   async findByHall(id: string) {
     const supabase = this.supabaseService.getClient();
 

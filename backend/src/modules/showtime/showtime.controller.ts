@@ -17,6 +17,11 @@ export class ShowtimeController {
     return this.showtimeService.findAll(); // หารอบฉายทั้งหมด
   }
 
+  @Get('upcoming')
+  async findUpcoming() {
+    return this.showtimeService.findUpcoming();
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.showtimeService.findByHall(id); // หาจาก id hall
