@@ -4,7 +4,10 @@ import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { CityPickerModal } from "@/components/movies-detail/CityPickerModal";
-import { MovieDetailError, MovieDetailLoading } from "@/components/movies-detail/MovieDetailState";
+import {
+  MovieDetailError,
+  MovieDetailLoading,
+} from "@/components/movies-detail/MovieDetailState";
 import { MovieDetailHero } from "@/components/movies-detail/MovieDetailHero";
 import { MovieDetailOverview } from "@/components/movies-detail/MovieDetailOverview";
 import { ShowtimeDateSelector } from "@/components/movies-detail/ShowtimeDateSelector";
@@ -18,7 +21,7 @@ import {
   toDateKey,
 } from "@/lib/utils/movie-detail.utils";
 import { getMovieById } from "@/services/movie.service";
-import { getUpcomingShowtimes } from "@/services/showtime.service";
+import { getShowtimesByMovie } from "@/services/showtime.service";
 import { GeoPoint } from "@/types/movie-detail";
 import { Movie } from "@/types/movie";
 import { Showtime } from "@/types/showtime";
@@ -26,11 +29,11 @@ import { Showtime } from "@/types/showtime";
 export default function MovieDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const dateOptions = useMemo(() => getDateOptions(), []);
   const [movie, setMovie] = useState<Movie | null>(null);
   const [showtimes, setShowtimes] = useState<Showtime[]>([]);
-  const [selectedDateKey, setSelectedDateKey] = useState(dateOptions[0]?.key ?? "");
-  const [referenceLocation, setReferenceLocation] = useState<GeoPoint>(BANGKOK_CENTER);
+  const [selectedDateKey, setSelectedDateKey] = useState(toDateKey(new Date()));
+  const [referenceLocation, setReferenceLocation] =
+    useState<GeoPoint>(BANGKOK_CENTER);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [isCityPickerOpen, setIsCityPickerOpen] = useState(false);
@@ -49,9 +52,9 @@ export default function MovieDetailScreen() {
         setLoading(true);
         setError("");
 
-        const [movieData, upcomingShowtimes] = await Promise.all([
+        const [movieData, movieShowtimes] = await Promise.all([
           getMovieById(id),
-          getUpcomingShowtimes(),
+          getShowtimesByMovie(id),
         ]);
 
         if (!isMounted) {
@@ -59,7 +62,7 @@ export default function MovieDetailScreen() {
         }
 
         setMovie(movieData);
-        setShowtimes(upcomingShowtimes);
+        setShowtimes(movieShowtimes);
       } catch (err) {
         if (!isMounted) {
           return;
@@ -86,7 +89,8 @@ export default function MovieDetailScreen() {
 
     const requestLocation = async () => {
       try {
-        const permissionResult = await Location.requestForegroundPermissionsAsync();
+        const permissionResult =
+          await Location.requestForegroundPermissionsAsync();
 
         if (permissionResult.status !== "granted") {
           return;
@@ -118,8 +122,27 @@ export default function MovieDetailScreen() {
 
   const movieShowtimes = useMemo(
     () => showtimes.filter((showtime) => showtime.movie_id === id),
-    [id, showtimes]
+    [id, showtimes],
   );
+
+  const dateOptions = useMemo(
+    () => getDateOptions(movieShowtimes),
+    [movieShowtimes],
+  );
+
+  useEffect(() => {
+    if (!dateOptions.length) {
+      return;
+    }
+
+    const hasSelectedDate = dateOptions.some(
+      (dateOption) => dateOption.key === selectedDateKey,
+    );
+
+    if (!hasSelectedDate) {
+      setSelectedDateKey(dateOptions[0].key);
+    }
+  }, [dateOptions, selectedDateKey]);
 
   const cityOptions = useMemo(() => {
     const cities = new Set<string>();
@@ -132,7 +155,9 @@ export default function MovieDetailScreen() {
       }
     });
 
-    return Array.from(cities).sort((cityA, cityB) => cityA.localeCompare(cityB));
+    return Array.from(cities).sort((cityA, cityB) =>
+      cityA.localeCompare(cityB),
+    );
   }, [movieShowtimes]);
 
   const theaterGroups = useMemo(() => {

@@ -55,8 +55,11 @@ function extractCoordinatesFromMapUrl(mapUrl?: string | null): GeoPoint | null {
 
   try {
     const parsed = new URL(mapUrl);
-    const coordinateText = parsed.searchParams.get("q") ?? parsed.searchParams.get("query");
-    const qMatch = coordinateText?.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
+    const coordinateText =
+      parsed.searchParams.get("q") ?? parsed.searchParams.get("query");
+    const qMatch = coordinateText?.match(
+      /(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/,
+    );
 
     if (!qMatch) {
       return null;
@@ -79,7 +82,7 @@ export function toDateKey(value: Date | string) {
   const date = typeof value === "string" ? new Date(value) : value;
 
   return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(
-    date.getDate()
+    date.getDate(),
   )}`;
 }
 
@@ -88,26 +91,42 @@ export function dateFromKey(key: string) {
   return new Date(year, month - 1, day);
 }
 
-export function getDateOptions(): DateOption[] {
+function createDateOption(date: Date, todayKey: string): DateOption {
+  const key = toDateKey(date);
+
+  return {
+    key,
+    day:
+      key === todayKey
+        ? "Today"
+        : date.toLocaleDateString("en-US", { weekday: "short" }),
+    label: date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }),
+  };
+}
+
+export function getDateOptions(showtimes: Showtime[] = []): DateOption[] {
   const today = new Date();
+  const todayKey = toDateKey(today);
+
+  if (showtimes.length > 0) {
+    const dateKeys = Array.from(
+      new Set(showtimes.map((showtime) => toDateKey(showtime.start_time))),
+    ).sort();
+
+    return dateKeys.map((dateKey) =>
+      createDateOption(dateFromKey(dateKey), todayKey),
+    );
+  }
 
   return Array.from({ length: 7 }, (_, index) => {
     const date = new Date(today);
     date.setDate(today.getDate() + index);
-    const key = toDateKey(date);
 
-    return {
-      key,
-      day:
-        index === 0
-          ? "Today"
-          : date.toLocaleDateString("en-US", { weekday: "short" }),
-      label: date.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }),
-    };
+    return createDateOption(date, todayKey);
   });
 }
 
@@ -177,7 +196,7 @@ function getTheaterDistance(theater: Theater, referenceLocation: GeoPoint) {
 
 export function buildTheaterGroups(
   showtimes: Showtime[],
-  referenceLocation: GeoPoint
+  referenceLocation: GeoPoint,
 ): TheaterShowtimeGroup[] {
   const byTheater = new Map<string, TheaterShowtimeGroup>();
 
@@ -222,7 +241,7 @@ export function buildTheaterGroups(
           showtimes: hall.showtimes.sort(
             (showtimeA, showtimeB) =>
               new Date(showtimeA.start_time).getTime() -
-              new Date(showtimeB.start_time).getTime()
+              new Date(showtimeB.start_time).getTime(),
           ),
         }))
         .sort((hallA, hallB) => hallA.hallName.localeCompare(hallB.hallName)),

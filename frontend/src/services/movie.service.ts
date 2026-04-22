@@ -1,10 +1,8 @@
 import { Movie } from "@/types/movie";
 
-// const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export async function getMovies(): Promise<Movie[]> {
-
   try {
     if (!API_BASE_URL) {
       throw new Error("API base URL is undefined");
@@ -26,7 +24,6 @@ export async function getMovies(): Promise<Movie[]> {
 }
 
 export async function getMovieById(id: string): Promise<Movie> {
-
   try {
     if (!API_BASE_URL) {
       throw new Error("API base URL is undefined");
