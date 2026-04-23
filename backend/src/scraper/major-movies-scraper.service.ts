@@ -15,14 +15,11 @@ import { Injectable, Logger } from '@nestjs/common';
 // นำเข้า Playwright สำหรับ browser automation
 import { Browser, chromium, Page, Response } from 'playwright';
 
-// นำเข้า MoviesService สำหรับบันทึกข้อมูลลง database
-import { MoviesService } from '@/movies/movies.service';
+// นำเข้า ScrapeRunsService สำหรับบันทึก scrape runs และ snapshots
+import { ScrapeRunsService } from './scrape-runs.service';
 
 // นำเข้า Type definitions
 import { MajorMovieDraft, MajorMoviesScrapeResult } from './major-movies.types';
-
-// นำเข้า mapper สำหรับแปลงข้อมูล
-import { toMovieUpsertDto } from './utils/major-movie.mapper';
 
 // ==================== Constants from Environment Variables ====================
 // อ่านค่าจาก .env หรือใช้ default ถ้าไม่มี
@@ -47,59 +44,125 @@ export class MajorMoviesScraperService {
   // Logger สำหรับ log ข้อความ debug/warning/error
   private readonly logger = new Logger(MajorMoviesScraperService.name);
 
-  // Constructor injection: NestJS จะสร้าง instance ของ MoviesService ให้อัตโนมัติ
-  constructor(private readonly moviesService: MoviesService) {}
+  // Constructor injection: NestJS จะสร้าง instance ของ ScrapeRunsService ให้อัตโนมัติ
+  constructor(private readonly scrapeRunsService: ScrapeRunsService) {}
 
   /**
-   * scrapeAndUpsertMajorMovies - กระบวนการหลัก: scrape หนังและบันทึกลง database
+   * scrapeAndSaveSnapshots - กระบวนการหลัก: scrape หนังและบันทึก snapshots
    *
    * ขั้นตอน:
-   * 1. เรียก scrapeMajorMovies() เพื่อดึงรายการหนังทั้งหมดพร้อมรายละเอียด
-   * 2. วนลูปบันทึกลง database ทีละเรื่องผ่าน moviesService.upsert()
-   * 3. นับสถิติ: upserted, skipped (ไม่มี title), failed (error)
+   * 1. สร้าง scrape_run record (status: running)
+   * 2. เรียก scrapeMajorMovies() เพื่อดึงรายการหนังทั้งหมดพร้อมรายละเอียด
+   * 3. วนลูปบันทึก snapshots ลง movie_scrape_snapshots ทีละเรื่อง
+   * 4. อัพเดท scrape_run status เป็น success/failed/partial
    *
    * @returns ผลลัพธ์การ scrape พร้อมสถิติและ errors
    */
-  async scrapeAndUpsertMajorMovies(): Promise<MajorMoviesScrapeResult> {
-    // เริ่ม scraping - ดึงรายการหนังทั้งหมดพร้อมรายละเอียด
-    const movies = await this.scrapeMajorMovies();
+  async scrapeAndSaveSnapshots(): Promise<MajorMoviesScrapeResult> {
+    // Step 1: สร้าง scrape_run record ใหม่
+    const run = await this.scrapeRunsService.createRun(
+      'majorcineplex',
+      'movies',
+    );
+    this.logger.log(`Created scrape run: ${run.id}`);
+
+    let movies: MajorMovieDraft[] = [];
+
+    try {
+      // Step 2: ดึงรายการหนังทั้งหมดพร้อมรายละเอียด
+      movies = await this.scrapeMajorMovies();
+    } catch (error) {
+      // ถ้า scrape ล้มเหลวตั้งแต่ต้น อัพเดท run เป็น failed
+      await this.scrapeRunsService.completeRun(
+        run.id,
+        'failed',
+        { fetched: 0, upserted: 0, skipped: 0, failed: 0 },
+        this.getErrorMessage(error),
+      );
+      throw error;
+    }
 
     // สร้าง object ผลลัพธ์เริ่มต้น
     const result: MajorMoviesScrapeResult = {
       status: 'success',
       source: 'majorcineplex',
-      fetched: movies.length, // จำนวนหนังที่พบบนหน้า listing
-      upserted: 0, // จำนวนที่บันทึกสำเร็จ
-      skipped: 0, // จำนวนที่ข้าม (ไม่มี title)
-      failed: 0, // จำนวนที่บันทึกล้มเหลว (error)
-      errors: [], // รายการ error รายละเอียด
+      fetched: movies.length,
+      upserted: 0,
+      skipped: 0,
+      failed: 0,
+      errors: [],
     };
 
-    // วนลูปบันทึกหนังลง database ทีละเรื่อง
+    // Step 3: วนลูปบันทึก snapshots ทีละเรื่อง
     for (const movie of movies) {
-      // แปลง MajorMovieDraft เป็น UpsertMovieDto พร้อมทำความสะอาดข้อมูล
-      const movieDto = toMovieUpsertDto(movie);
-
       // ถ้าไม่มี title ถือว่าข้อมูลไม่ครบ ข้ามไป
-      if (!movieDto) {
+      if (!movie.title?.trim()) {
         result.skipped += 1;
         continue;
       }
 
+      // แปลง MajorMovieDraft เป็น format ที่ต้องการ (กรอง null ออก)
+      const snapshotData = {
+        title: movie.title ?? undefined,
+        poster_url: movie.poster_url ?? undefined,
+        show_date: movie.show_date ?? undefined,
+        genre: movie.genre ?? undefined,
+        duration: movie.duration ?? undefined,
+        link: movie.link ?? undefined,
+        description: movie.description ?? undefined,
+        rating: movie.rating ?? undefined,
+        trailer_url: movie.trailer_url ?? undefined,
+      };
+
       try {
-        // บันทึก/อัพเดตหนังลง database (upsert = insert ถ้าไม่มี, update ถ้ามี)
-        await this.moviesService.upsert(movieDto);
+        // บันทึก snapshot ลง database
+        await this.scrapeRunsService.saveSnapshot(run.id, snapshotData, movie);
         result.upserted += 1;
       } catch (error) {
-        // ถ้าบันทึกล้มเหลว เก็บ error ไว้รายงาน
+        // ถ้าบันทึกล้มเหลว เก็บ error และบันทึก snapshot ที่มี error
         result.failed += 1;
         result.errors.push({
           title: movie.title,
           link: movie.link,
           message: this.getErrorMessage(error),
         });
+
+        // บันทึก snapshot ที่มี error
+        try {
+          await this.scrapeRunsService.saveSnapshotWithError(
+            run.id,
+            { title: movie.title ?? undefined, link: movie.link ?? undefined },
+            movie,
+            this.getErrorMessage(error),
+          );
+        } catch (snapshotError) {
+          this.logger.error(
+            `Failed to save error snapshot: ${this.getErrorMessage(snapshotError)}`,
+          );
+        }
       }
     }
+
+    // Step 4: อัพเดทสถานะสุดท้ายของ scrape_run
+    const finalStatus: 'success' | 'failed' | 'partial' =
+      result.failed === 0
+        ? 'success'
+        : result.upserted === 0
+          ? 'failed'
+          : 'partial';
+
+    await this.scrapeRunsService.completeRun(run.id, finalStatus, {
+      fetched: result.fetched,
+      upserted: result.upserted,
+      skipped: result.skipped,
+      failed: result.failed,
+    });
+
+    this.logger.log(
+      `Scrape run ${run.id} completed: ${finalStatus}, ` +
+        `fetched=${result.fetched}, upserted=${result.upserted}, ` +
+        `skipped=${result.skipped}, failed=${result.failed}`,
+    );
 
     return result;
   }
@@ -122,7 +185,7 @@ export class MajorMoviesScraperService {
     const browser = await chromium.launch({ headless: true });
 
     try {
-      // Step 1: ดึงรายการหนังทั้งหมดจากหน้า https://www.majorcineplex.com/movie
+      // Step 1: ดึงรายการหนังทั้งหมดจากหน้า /movie
       const movies = await this.scrapeMovieList(browser);
 
       // ดึงค่า concurrency จาก environment variable หรือใช้ default

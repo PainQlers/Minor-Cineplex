@@ -31,7 +31,7 @@ export class ScraperController {
    */
   @Post('major/movies') // กำหนด HTTP POST endpoint ที่ path /major/movies
   async scrapeMajorMovies() {
-    // เรียก method ของ service เพื่อเริ่มกระบวนการ scraping ทั้งหมด
-    return this.majorMoviesScraperService.scrapeAndUpsertMajorMovies();
+    // เรียก method ของ service เพื่อเริ่มกระบวนการ scraping และบันทึก snapshots
+    return this.majorMoviesScraperService.scrapeAndSaveSnapshots();
   }
 }

@@ -18,10 +18,13 @@ import { MoviesModule } from '@/movies/movies.module';
 // นำเข้า Guard ที่ตรวจสอบ API Key (แทน IP-based)
 import { ApiKeyGuard } from './guards/api-key.guard';
 
+// นำเข้า Service สำหรับจัดการ scrape runs และ snapshots
+import { ScrapeRunsService } from './scrape-runs.service';
+
 // Decorator @Module กำหนด metadata สำหรับโมดูลนี้
 @Module({
   imports: [MoviesModule], // นำเข้า MoviesModule เพื่อใช้ service อื่นๆ
   controllers: [ScraperController], // กำหนด Controllers ที่จัดการ HTTP requests
-  providers: [MajorMoviesScraperService, ApiKeyGuard], // กำหนด Services และ Guards ที่ใช้ในโมดูลนี้
+  providers: [MajorMoviesScraperService, ApiKeyGuard, ScrapeRunsService], // กำหนด Services และ Guards ที่ใช้ในโมดูลนี้
 })
 export class ScraperModule {} // ส่งออก class สำหรับนำไปใช้ใน AppModule
