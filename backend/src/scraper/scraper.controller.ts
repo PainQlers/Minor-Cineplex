@@ -4,10 +4,20 @@
  */
 
 // นำเข้า decorators จาก NestJS สำหรับสร้าง REST API
-import { Controller, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 
 // นำเข้า Service ที่มี logic การ scrape หนังจาก Major Cineplex
 import { MajorMoviesScraperService } from './major-movies-scraper.service';
+import { ScraperAdminService } from './scraper-admin.service';
+import type { ApplySnapshotsRequest } from './scraper-admin.service';
 
 // นำเข้า Guard ที่ตรวจสอบ API Key
 import { ApiKeyGuard } from './guards/api-key.guard';
@@ -22,7 +32,37 @@ export class ScraperController {
   // และส่งเข้ามาให้ผ่าน parameter นี้ (Dependency Injection pattern)
   constructor(
     private readonly majorMoviesScraperService: MajorMoviesScraperService,
+    private readonly scraperAdminService: ScraperAdminService,
   ) {}
+
+  @Get('runs')
+  async listRuns(@Query('limit') limit?: string) {
+    return this.scraperAdminService.listRuns(limit ? Number(limit) : undefined);
+  }
+
+  @Get('runs/:runId/compare')
+  async compareRun(
+    @Param('runId') runId: string,
+    @Query('status') status?: string,
+    @Query('q') q?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    return this.scraperAdminService.getRunCompare(runId, {
+      status,
+      q,
+      page: page ? Number(page) : undefined,
+      pageSize: pageSize ? Number(pageSize) : undefined,
+    });
+  }
+
+  @Post('runs/:runId/apply')
+  async applyRunSnapshots(
+    @Param('runId') runId: string,
+    @Body() body: ApplySnapshotsRequest,
+  ) {
+    return this.scraperAdminService.applySnapshots(runId, body);
+  }
 
   /**
    * POST /scraper/major/movies
