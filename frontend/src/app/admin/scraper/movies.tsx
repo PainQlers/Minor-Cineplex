@@ -167,12 +167,14 @@ function ConfirmModal({
 }
 
 export default function AdminMovieScraperScreen() {
+  const pageSize = 25;
   const [apiKey, setApiKey] = useState("");
   const [runs, setRuns] = useState<ScrapeRun[]>([]);
   const [selectedRunId, setSelectedRunId] = useState("");
   const [status, setStatus] = useState<"all" | SnapshotCompareStatus>("all");
   const [query, setQuery] = useState("");
   const [compare, setCompare] = useState<CompareRunsResponse | null>(null);
+  const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loadingRuns, setLoadingRuns] = useState(false);
   const [loadingCompare, setLoadingCompare] = useState(false);
@@ -221,8 +223,8 @@ export default function AdminMovieScraperScreen() {
         runId: selectedRunId,
         status,
         q: query,
-        page: 1,
-        pageSize: 50,
+        page,
+        pageSize,
       });
       setCompare(data);
       setSelectedIds(new Set());
@@ -231,13 +233,17 @@ export default function AdminMovieScraperScreen() {
     } finally {
       setLoadingCompare(false);
     }
-  }, [apiKey, query, selectedRunId, status]);
+  }, [apiKey, page, pageSize, query, selectedRunId, status]);
 
   useEffect(() => {
     if (apiKey.trim() && selectedRunId) {
       void loadCompare();
     }
   }, [apiKey, loadCompare, selectedRunId]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedRunId]);
 
   const toggleSelected = (snapshotId: string) => {
     setSelectedIds((current) => {
@@ -251,6 +257,43 @@ export default function AdminMovieScraperScreen() {
 
       return next;
     });
+  };
+
+  const handleChangeStatus = (nextStatus: "all" | SnapshotCompareStatus) => {
+    setStatus(nextStatus);
+    setPage(1);
+  };
+
+  const handleChangeQuery = (nextQuery: string) => {
+    setQuery(nextQuery);
+    setPage(1);
+  };
+
+  const totalPages = Math.max(1, Math.ceil((compare?.total ?? 0) / pageSize));
+  const pageNumbers = useMemo(() => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    if (page <= 3) {
+      return [1, 2, 3, 4, 5];
+    }
+
+    if (page >= totalPages - 2) {
+      return [
+        totalPages - 4,
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      ];
+    }
+
+    return [page - 2, page - 1, page, page + 1, page + 2];
+  }, [page, totalPages]);
+
+  const goToPage = (nextPage: number) => {
+    setPage(Math.min(Math.max(nextPage, 1), totalPages));
   };
 
   const selectVisible = () => {
@@ -392,7 +435,7 @@ export default function AdminMovieScraperScreen() {
               </View>
               <TextInput
                 className="min-h-12 min-w-72 border border-[#35405F] px-3 font-condensed text-body2regular text-white"
-                onChangeText={setQuery}
+                onChangeText={handleChangeQuery}
                 placeholder="Search title or link"
                 placeholderTextColor="#68708C"
                 value={query}
@@ -425,7 +468,7 @@ export default function AdminMovieScraperScreen() {
                           ? "border-[#4E7BEE] bg-[#4E7BEE]"
                           : "border-[#26314F] bg-[#070C1B]"
                       }`}
-                      onPress={() => setStatus(option)}
+                      onPress={() => handleChangeStatus(option)}
                     >
                       <Text className="font-condensedBold text-body2regular text-white">
                         {option} {typeof count === "number" ? `(${count})` : ""}
@@ -438,7 +481,8 @@ export default function AdminMovieScraperScreen() {
 
             <View className="gap-3 md:flex-row md:items-center md:justify-between">
               <Text className="font-condensed text-body2regular text-[#B7BED4]">
-                Selected {selectedCount} / showing {compare?.rows.length ?? 0}
+                Selected {selectedCount} / showing {compare?.rows.length ?? 0} of{" "}
+                {compare?.total ?? 0}
               </Text>
               <View className="flex-row flex-wrap gap-2">
                 <Pressable
@@ -475,6 +519,48 @@ export default function AdminMovieScraperScreen() {
                     </Text>
                   </Pressable>
                 ))}
+              </View>
+            </View>
+
+            <View className="gap-3 border-t border-[#26314F] pt-4 md:flex-row md:items-center md:justify-between">
+              <Text className="font-condensed text-body2regular text-[#B7BED4]">
+                Page {page} of {totalPages} | {pageSize} per page
+              </Text>
+              <View className="flex-row items-center gap-2">
+                <Pressable
+                  className="border border-[#35405F] px-4 py-3 disabled:opacity-40"
+                  disabled={page <= 1 || loadingCompare}
+                  onPress={() => goToPage(page - 1)}
+                >
+                  <Text className="font-condensedBold text-body2regular text-white">
+                    Prev
+                  </Text>
+                </Pressable>
+                {pageNumbers.map((pageNumber) => (
+                  <Pressable
+                    key={pageNumber}
+                    className={`border px-4 py-3 ${
+                      pageNumber === page
+                        ? "border-[#4E7BEE] bg-[#4E7BEE]"
+                        : "border-[#35405F]"
+                    }`}
+                    disabled={loadingCompare}
+                    onPress={() => goToPage(pageNumber)}
+                  >
+                    <Text className="font-condensedBold text-body2regular text-white">
+                      {pageNumber}
+                    </Text>
+                  </Pressable>
+                ))}
+                <Pressable
+                  className="border border-[#35405F] px-4 py-3 disabled:opacity-40"
+                  disabled={page >= totalPages || loadingCompare}
+                  onPress={() => goToPage(page + 1)}
+                >
+                  <Text className="font-condensedBold text-body2regular text-white">
+                    Next
+                  </Text>
+                </Pressable>
               </View>
             </View>
           </View>
@@ -551,6 +637,14 @@ export default function AdminMovieScraperScreen() {
                 </View>
               );
             })}
+
+            {!loadingCompare && compare && compare.rows.length === 0 ? (
+              <View className="border border-[#26314F] bg-[#0D1426] p-6">
+                <Text className="font-condensed text-body2regular text-[#9AA4C1]">
+                  No snapshots found for this page/filter.
+                </Text>
+              </View>
+            ) : null}
           </View>
         </View>
       </ScrollView>

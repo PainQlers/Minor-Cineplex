@@ -58,7 +58,7 @@ export async function getMovieScrapeCompare(
     status: params.status ?? "all",
     q: params.q ?? "",
     page: String(params.page ?? 1),
-    pageSize: String(params.pageSize ?? 50),
+    pageSize: String(params.pageSize ?? 25),
   });
 
   return fetchScraperAdmin<CompareRunsResponse>(

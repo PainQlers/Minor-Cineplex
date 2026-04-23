@@ -19,6 +19,15 @@ const COMPARE_FIELDS = [
   'link',
 ] as const;
 
+const STATUS_PRIORITY: Record<SnapshotCompareStatus, number> = {
+  new: 0,
+  changed: 1,
+  invalid: 2,
+  failed: 3,
+  unchanged: 4,
+  pending: 5,
+};
+
 type CompareField = (typeof COMPARE_FIELDS)[number];
 type ApplyAction = 'approve' | 'ignore' | 'mark_inactive';
 
@@ -59,12 +68,7 @@ export class ScraperAdminService {
     const query = options.q?.trim().toLowerCase() ?? '';
     const page = Math.max(options.page ?? 1, 1);
     const pageSize = Math.min(Math.max(options.pageSize ?? 50, 1), 100);
-    const { rows: snapshotRows, total } =
-      await this.scrapeRunsService.getSnapshotsByRunPage(runId, {
-        page,
-        pageSize,
-        q: query,
-      });
+    const snapshotRows = await this.scrapeRunsService.getSnapshotsByRun(runId);
     const rows = await this.buildCompareRowsFromSnapshots(snapshotRows);
 
     const filteredRows = rows.filter((row) => {
@@ -86,6 +90,12 @@ export class ScraperAdminService {
         .filter(Boolean)
         .some((value) => value?.toLowerCase().includes(query));
     });
+    const sortedRows = filteredRows.sort((left, right) =>
+      this.compareRows(left, right),
+    );
+    const total = sortedRows.length;
+    const start = (page - 1) * pageSize;
+    const pagedRows = sortedRows.slice(start, start + pageSize);
 
     return {
       runId,
@@ -93,7 +103,7 @@ export class ScraperAdminService {
       pageSize,
       total,
       totals: this.getTotals(rows),
-      rows: filteredRows,
+      rows: pagedRows,
     };
   }
 
@@ -307,6 +317,24 @@ export class ScraperAdminService {
         pending: 0,
       } satisfies Record<SnapshotCompareStatus, number>,
     );
+  }
+
+  private compareRows(left: MovieCompareRow, right: MovieCompareRow) {
+    const priorityDiff =
+      STATUS_PRIORITY[left.compareStatus] - STATUS_PRIORITY[right.compareStatus];
+
+    if (priorityDiff !== 0) {
+      return priorityDiff;
+    }
+
+    const leftUpdatedAt = new Date(left.snapshot.created_at).getTime();
+    const rightUpdatedAt = new Date(right.snapshot.created_at).getTime();
+
+    if (leftUpdatedAt !== rightUpdatedAt) {
+      return rightUpdatedAt - leftUpdatedAt;
+    }
+
+    return (left.snapshot.title ?? '').localeCompare(right.snapshot.title ?? '');
   }
 
   private normalize(value: unknown) {
