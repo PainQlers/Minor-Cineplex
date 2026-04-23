@@ -1,10 +1,9 @@
 import { Showtime } from "@/types/showtime";
 
-// const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+// const API_BASE_URL = 'http://localhost:3000';
 
 export async function getShowtimeById(id: string): Promise<Showtime> {
-
   try {
     if (!API_BASE_URL) {
       throw new Error("API base URL is undefined");
@@ -21,6 +20,60 @@ export async function getShowtimeById(id: string): Promise<Showtime> {
     return data;
   } catch (err) {
     console.error("showtime error:", err);
+    throw err;
+  }
+}
+
+export async function getUpcomingShowtimes(): Promise<Showtime[]> {
+  try {
+    if (!API_BASE_URL) {
+      throw new Error("API base URL is undefined");
+    }
+
+    const response = await fetch(`${API_BASE_URL}/showtime/upcoming`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("upcoming showtimes:", data);
+    return data;
+  } catch (err) {
+    console.error("upcoming showtimes error:", err);
+    throw err;
+  }
+}
+
+export async function getShowtimesByMovie(
+  movieId: string,
+): Promise<Showtime[]> {
+  try {
+    if (!API_BASE_URL) {
+      throw new Error("API base URL is undefined");
+    }
+
+    const params = new URLSearchParams({
+      days: "7",
+    });
+
+    if (process.env.NODE_ENV !== "production") {
+      params.set("includePastForDev", "true");
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/showtime/movie/${movieId}?${params}`,
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("movie showtimes:", data);
+    return data;
+  } catch (err) {
+    console.error("movie showtimes error:", err);
     throw err;
   }
 }

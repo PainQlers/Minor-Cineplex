@@ -1,58 +1,71 @@
-import { FlatList, Text, View } from "react-native";
-import { Link } from "@/components/ui/link";
+import { useEffect, useState } from "react";
+import { FlatList, Text, View, ActivityIndicator, Pressable, Platform } from "react-native";
+import { useRouter } from "expo-router";
 import { CouponCard } from "@/components/landing-page/CouponCard";
+import { getCoupons } from "@/services/coupon.service";
+import { Coupon } from "@/types/coupon";
 
-const MOCK_COUPONS = [
-  {
-    id: "1",
-    title: "Minor Cineplex x Coke Joyful Together",
-    validUntil: "18 Jun 2025",
-    brand: "Joyful Together",
-    badgeText: "Limited",
-    offerText: "999",
-    gradientColors: ["#580A12", "#9E1425", "#1B1235"] as [string, string, string],
-  },
-  {
-    id: "2",
-    title: "Redeem 999 UOB Rewards Points for Movie Perks",
-    validUntil: "18 Jun 2025",
-    brand: "UOB Rewards",
-    badgeText: "UOB",
-    offerText: "999",
-    gradientColors: ["#07142E", "#122C68", "#0A0F1E"] as [string, string, string],
-  },
-  {
-    id: "3",
-    title: "GSB Credit Cards Get a Deluxe Combo Privilege",
-    validUntil: "18 Jun 2025",
-    brand: "GSB x Minor",
-    badgeText: "Promo",
-    offerText: "50%",
-    gradientColors: ["#0D5775", "#24A1D2", "#E13A8B"] as [string, string, string],
-  },
-  {
-    id: "4",
-    title: "UOB Mercedes Buy 1 Get 1 Regular Movie Ticket",
-    validUntil: "18 Jun 2025",
-    brand: "UOB Mercedes",
-    badgeText: "BOGO",
-    offerText: "1+1",
-    gradientColors: ["#080808", "#2F2F35", "#10131E"] as [string, string, string],
-  },
-] as const;
 
 export function CouponsSection() {
+  const router = useRouter();
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getCoupons();
+        setCoupons(data);
+      } catch (err) {
+        setError("Unable to load coupons");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCoupons();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <View className="items-center justify-center py-8">
+        <ActivityIndicator size="large" color="#3B82F6" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View className="items-center justify-center py-8">
+        <Text className="text-red-400">{error}</Text>
+      </View>
+    );
+  }
+
   return (
     <View className="gap-6 pb-4 pt-4">
       <View className="flex-row items-center justify-between">
         <Text className="text-2xl font-bold text-white">Special coupons</Text>
-        <Link href="/coupons" variant="link" textClassName="text-base font-semibold">
-          View all
-        </Link>
+        <Pressable
+          onPress={() => {
+            if (Platform.OS === 'web') {
+              window.location.href = '/coupons';
+            } else {
+              router.push('/coupons');
+            }
+          }}
+        >
+          <Text className="text-base font-semibold text-base-white">
+            View all
+          </Text>
+        </Pressable>
       </View>
 
       <FlatList
-        data={MOCK_COUPONS}
+        data={coupons.slice(0, 4)}
         keyExtractor={(item) => item.id}
         numColumns={2}
         scrollEnabled={false}
@@ -60,12 +73,7 @@ export function CouponsSection() {
         contentContainerStyle={{ gap: 14 }}
         renderItem={({ item }) => (
           <CouponCard
-            title={item.title}
-            validUntil={item.validUntil}
-            brand={item.brand}
-            badgeText={item.badgeText}
-            offerText={item.offerText}
-            gradientColors={item.gradientColors}
+            coupon={item}
           />
         )}
       />

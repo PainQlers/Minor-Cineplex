@@ -1,4 +1,5 @@
 import { Hall } from "./hall";
+import { Movie } from "./movie";
 
 export type Showtime = {
   id: string;
@@ -7,4 +8,5 @@ export type Showtime = {
   start_time: string;
   price: number;
   halls: Hall;
+  movies?: Movie | null;
 };

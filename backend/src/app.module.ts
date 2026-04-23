@@ -10,6 +10,8 @@ import { TheatersModule } from './theaters/theaters.module';
 import { ShowtimeModule } from './modules/showtime/showtime.module';
 import { SeatModule } from './modules/seat/seat.module';
 import { HallModule } from './modules/hall/hall.module';
+import { CouponsModule } from './coupons/coupons.module';
+import { ScraperModule } from './scraper/scraper.module';
 
 @Module({
   imports: [
@@ -22,7 +24,9 @@ import { HallModule } from './modules/hall/hall.module';
     TheatersModule,
     ShowtimeModule,
     SeatModule,
-    HallModule
+    HallModule,
+    CouponsModule,
+    ScraperModule,
   ],
   controllers: [AppController],
   providers: [AppService, SupabaseService],

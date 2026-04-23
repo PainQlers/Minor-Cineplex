@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { View, Text, Pressable } from "react-native";
-import { cn } from "../../../lib/utils";
+import { cn } from "../../lib/utils";
 import SeatIcon, { SeatStatus } from "./SeatIcon";
 import { getSeatByHallId } from "@/services/seat.service";
 import { useLocalSearchParams } from "expo-router";

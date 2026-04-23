@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
 import Header from '../../components/sections/auth/AuthHeader';
 import FilterRow from '../../components/sections/auth/AuthFilterRow';
 import { Checkbox } from '../../components/sections/auth/AuthCheckbox';
 import SubmitButton from '../../components/sections/auth/AuthSubmitButton';
-import { useRouter } from 'expo-router';
 import axios from 'axios';
+import { useRouter } from 'expo-router';
 
 const FILTER_FIELDS = [
   { key: 'email',        label: 'Email',   placeholder: 'Email',      secure: false },
@@ -29,9 +29,8 @@ export default function Login() {
     password: null,
   });
 
-  const router = useRouter();
-
   const [submitted, setSubmitted] = useState(false);
+  const router = useRouter();
   
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -156,14 +155,22 @@ export default function Login() {
             <Text className="text-[#8b93b0] text-xs text-center px-1 leading-5">
                 Already have an account?
               </Text>
-              <Text className="text-white text-xs text-center px-1 leading-5 underline"
-              onPress={() => router.push('/screens/Register')}>
-                Register
-              </Text>
-              <Text className="text-white text-xs text-center px-1 leading-5 underline"
-              onPress={() => router.push('/screens/Booking')}>
-                Booking
-              </Text>
+              <Pressable onPress={() => Platform.select({
+                web: () => window.location.href = '/screens/Register',
+                default: () => router.push('/screens/Register')
+              })()}>
+                <Text className="text-white text-xs text-center px-1 leading-5 underline">
+                  Register
+                </Text>
+              </Pressable>
+              <Pressable onPress={() => Platform.select({
+                web: () => window.location.href = '/screens/Booking',
+                default: () => router.push('/screens/Booking')
+              })()}>
+                <Text className="text-white text-xs text-center px-1 leading-5 underline">
+                  Booking
+                </Text>
+              </Pressable>
             </View>
         </ScrollView>
       </KeyboardAvoidingView>
