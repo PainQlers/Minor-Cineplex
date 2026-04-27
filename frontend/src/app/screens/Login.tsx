@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import Header from '../../components/sections/auth/AuthHeader';
 import FilterRow from '../../components/sections/auth/AuthFilterRow';
@@ -6,6 +6,8 @@ import { Checkbox } from '../../components/sections/auth/AuthCheckbox';
 import SubmitButton from '../../components/sections/auth/AuthSubmitButton';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
+import * as SecureStore from 'expo-secure-store';
+import { useAuth } from '@/context/AuthContext';
 
 const FILTER_FIELDS = [
   { key: 'email',        label: 'Email',   placeholder: 'Email',      secure: false },
@@ -30,10 +32,33 @@ export default function Login() {
   });
 
   const router = useRouter();
+  const { login } = useAuth();
 
   const [submitted, setSubmitted] = useState(false);
   
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // const checkToken = async () => {
+  //   const token = Platform.OS === 'web' 
+  //     ? localStorage.getItem('userToken') 
+  //     : await SecureStore.getItemAsync('userToken');
+      
+  //   console.log("🔍 Token ที่เก็บไว้คือ:", token);
+  // };
+
+  const checkToken = async () => {
+  if (Platform.OS === 'web') {
+    // 1. ดูว่ามี Key อะไรอยู่ในเครื่องบ้าง
+    console.log("🗝️ รายชื่อ Keys ทั้งหมดใน Web Storage:", Object.keys(localStorage));
+    
+    // 2. ลองดึงแบบระบุชื่อ
+    const token = localStorage.getItem('userToken');
+    console.log("🔍 Token จาก 'userToken':", token);
+  } else {
+    const token = await SecureStore.getItemAsync('userToken');
+    console.log("🔍 Token จาก SecureStore:", token);
+  }
+};
 
   const handleChange = (key: FieldKey) => (text: string) => {
     setFields(prev => ({ ...prev, [key]: text }));
@@ -85,8 +110,16 @@ export default function Login() {
       fields
     );
 
-    console.log('✅ Login success:', response.data);
-    alert('Login success 🎉');
+    if (response.data.session?.access_token) {
+      const token = response.data.session.access_token;
+
+      // Update context (which also persists token)
+      login(token);
+
+      alert('Login success 🎉');
+      router.replace('/');
+      checkToken()
+    }
 
     // TODO: redirect ไปหน้า login
 
@@ -159,10 +192,6 @@ export default function Login() {
               <Text className="text-white text-xs text-center px-1 leading-5 underline"
               onPress={() => router.push('/screens/Register')}>
                 Register
-              </Text>
-              <Text className="text-white text-xs text-center px-1 leading-5 underline"
-              onPress={() => router.push('/screens/Booking')}>
-                Booking
               </Text>
             </View>
         </ScrollView>

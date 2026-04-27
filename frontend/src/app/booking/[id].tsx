@@ -133,12 +133,13 @@ export default function Booking() {
   }, [id]);
 
   const handleSelectionChange = (seats: string[], newTotal: number) => {
+    console.log("Selection Changing...", seats);
     setSelectedSeats(seats);
     setTotal(newTotal);
   };
 
   return (
-    <View key={id} className="flex-1 bg-[#0D0F1F]">
+    <View className="flex-1 bg-[#0D0F1F]">
       {/* Constrain to mobile-width for design fidelity */}
       <View className="max-w-[430px] mx-auto flex-1">
         <AppHeader />
