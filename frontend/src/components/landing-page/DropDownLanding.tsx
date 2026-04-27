@@ -147,4 +147,8 @@ export function DropdownUser({ onClose, open = false }: DropdownProps) {
             </BlurView>
         </Animated.View>
     );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 74d7461e67315f802529137643502e734619a65f
