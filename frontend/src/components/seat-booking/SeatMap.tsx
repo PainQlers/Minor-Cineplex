@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
+<<<<<<< HEAD
 import { View, Text, Pressable } from "react-native";
 import { cn } from "../../lib/utils";
+=======
+import { View, Text, Pressable, Platform } from "react-native";
+import { cn } from "../../../lib/utils";
+>>>>>>> 74d7461 (feat: Implement user authentication and profile management)
 import SeatIcon, { SeatStatus } from "./SeatIcon";
 import { getSeatByHallId } from "@/services/seat.service";
 import { useLocalSearchParams } from "expo-router";
@@ -91,10 +96,16 @@ export default function SeatMap({ pricePerSeat, onSelectionChange }: SeatMapProp
   const ROW_ORDER = Object.keys(layout);
 
   const handleSeatClick = (row: string, seatIndex: number) => {
+    console.log('🪑 Seat clicked:', row, seatIndex);
     const current = layout[row][seatIndex];
-    if (current === "booked" || current === "reserved") return;
+    console.log('Current status:', current);
+    if (current === "booked" || current === "reserved") {
+      console.log('Seat is booked/reserved, ignoring click');
+      return;
+    }
 
     const next: SeatStatus = current === "selected" ? "available" : "selected";
+    console.log('Toggling:', current, '→', next);
     const newRow = layout[row].map((s, i) => (i === seatIndex ? next : s));
     const newLayout = { ...layout, [row]: newRow };
     setLayout(newLayout);
@@ -105,6 +116,7 @@ export default function SeatMap({ pricePerSeat, onSelectionChange }: SeatMapProp
         if (s === "selected") selected.push(`${r}${i + 1}`);
       });
     });
+    console.log('✅ Selected seats:', selected, 'Total:', selected.length * pricePerSeat);
     onSelectionChange(selected, selected.length * pricePerSeat);
   };
 
@@ -150,10 +162,21 @@ export default function SeatMap({ pricePerSeat, onSelectionChange }: SeatMapProp
 
 function SeatButton({ status, onPress }: { status: SeatStatus; onPress: () => void }) {
   const clickable = status === "available" || status === "selected";
+  console.log('🔘 SeatButton render, status:', status, 'clickable:', clickable);
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={(e) => {
+        // สำหรับ Web: ป้องกันไม่ให้ Event กระโดดไปหาตัวแม่
+        if (Platform.OS === 'web' && e) {
+          // @ts-ignore
+          if (e.preventDefault) e.preventDefault();
+          // @ts-ignore
+          if (e.stopPropagation) e.stopPropagation();
+        }
+        console.log('🎯 Pressable onPress fired!');
+        onPress();
+      }}
       disabled={!clickable}
       className={cn(
         "w-[27px] h-[27px] flex-shrink-0 transition-transform duration-100",

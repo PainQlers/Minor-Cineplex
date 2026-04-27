@@ -13,10 +13,12 @@
   "dependencies": {
     "@expo-google-fonts/roboto": "^0.4.3",
     "@expo-google-fonts/roboto-condensed": "^0.4.2",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.15.5",
     "@react-navigation/elements": "^2.9.10",
     "@react-navigation/native": "^7.1.33",
-    "axios": "^1.14.0",
+    "@supabase/supabase-js": "^2.103.3",
+    "axios": "^1.15.1",
     "babel-preset-expo": "^55.0.13",
     "clsx": "^2.1.1",
     "expo": "~55.0.9",
@@ -27,11 +29,16 @@
     "expo-font": "~55.0.4",
     "expo-glass-effect": "~55.0.8",
     "expo-image": "~55.0.6",
+    "expo-image-picker": "~55.0.18",
     "expo-linear-gradient": "~55.0.10",
     "expo-linking": "~55.0.9",
     "expo-location": "~55.1.8",
     "expo-router": "~55.0.8",
+<<<<<<< HEAD
     "expo-secure-store": "~55.0.0",
+=======
+    "expo-secure-store": "~55.0.13",
+>>>>>>> 74d7461 (feat: Implement user authentication and profile management)
     "expo-splash-screen": "~55.0.13",
     "expo-status-bar": "~55.0.4",
     "expo-symbols": "~55.0.5",
