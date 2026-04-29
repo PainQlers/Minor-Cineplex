@@ -1,7 +1,9 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { SupabaseService } from '@/libs/supabase/supabase.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { createClient } from '@supabase/supabase-js';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class AuthService {
@@ -100,7 +102,7 @@ export class AuthService {
       this.logger.error('Register error:', error);
       throw error;
     }
-  }
+  };
 
   async login(dto: LoginDto) {
     const supabase = this.supabaseService.getClient();
@@ -148,6 +150,43 @@ export class AuthService {
       this.logger.error('Login error:', error);
       throw error;
     }
-  }
+  };
 
+  async findOne(id: string) { // , userIdFromToken: string
+      // if (id !== userIdFromToken) {
+      //   throw new ForbiddenException('You do not have permission to view this profile');
+      // }
+
+      const supabase = this.supabaseService.getClient();
+      
+          const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', id)
+          .single();
+      
+          if (error) {
+            throw new NotFoundException('Profile not found');
+          }
+      
+          return data;
+    }
+
+  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+
+    const supabase = this.supabaseService.getClient();
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updateProfileDto)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  }
+  
 }
+
+

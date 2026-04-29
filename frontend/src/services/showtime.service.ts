@@ -1,7 +1,7 @@
 import { Showtime } from "@/types/showtime";
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-// const API_BASE_URL = 'http://localhost:3000';
+// const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_BASE_URL = 'http://localhost:3000';
 
 export async function getShowtimeById(id: string): Promise<Showtime> {
   try {

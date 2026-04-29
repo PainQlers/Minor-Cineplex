@@ -1,6 +1,7 @@
 import { Theater } from "@/types/theater";
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+// const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_BASE_URL = 'http://localhost:3000';
 
 async function fetchTheaters<T>(path: string): Promise<T> {
   if (!API_BASE_URL) {

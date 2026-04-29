@@ -23,6 +23,7 @@ interface AppNavbarProps {
   showHamburger?: boolean;
   
   className?: string;
+  pointerEvents?: 'auto' | 'none' | 'box-none' | 'box-only';
 }
 
 export function AppNavbar({
@@ -32,17 +33,18 @@ export function AppNavbar({
   showHamburger = true,
   
   className,
+  pointerEvents = 'auto',
 }: AppNavbarProps) {
   const router = useRouter();
   return (
     <View
       className={clsx(
-        "flex-1 flex-row justify-between px-4 py-2 w-full ",
+        "flex-row justify-between px-4 py-2 w-full ",
         
         className
       )}
     >
-      <BlurView intensity={30} tint="dark" className="absolute inset-0" />
+      <BlurView intensity={30} tint="dark" className="absolute inset-0" style={{ pointerEvents: 'none' }} />
       {/* Left: Logo */}
       <Pressable
         onPress={() => {
