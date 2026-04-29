@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import InputField from "@/components/profile/InputField";
 import MenuBar from "@/components/profile/MenuBar";
-import { getProfileById, uploadProfilePicture } from "@/services/profile.service";
+import { getProfileById, updateProfileInBackend, uploadProfilePicture } from "@/services/profile.service";
 import { useLocalSearchParams } from "expo-router";
 import { Profiles } from "@/types/profile";
 import * as ImagePicker from 'expo-image-picker';
@@ -19,30 +19,40 @@ export default function Profile() {
   const [previewUri, setPreviewUri] = useState<string | null>(null);
 
   const handleSave = async () => {
-    // If there's a preview image selected, upload it on save
-    if (previewUri && id) {
-      try {
-        setUploading(true);
-        const newUrl = await uploadProfilePicture(id, {
+    try {
+      setUploading(true);
+      let currentPicUrl = profile?.pic_url || null;
+
+      // 1. ถ้ามีการเลือกรูปใหม่ ให้ทำการอัปโหลดก่อน
+      if (previewUri) {
+        const uploadedUrl = await uploadProfilePicture({
           uri: previewUri,
           type: 'image/jpeg',
-          name: `profile_${id}.jpg`
+          name: 'avatar.jpg'
         });
-
-        if (newUrl) {
-          setProfile(prev => prev ? { ...prev, pic_url: newUrl } : null);
-          setPreviewUri(null);
-        }
-      } catch (err) {
-        console.error('Upload on save error:', err);
-        Alert.alert('Error', 'ไม่สามารถอัปโหลดรูปภาพได้');
-      } finally {
-        setUploading(false);
+        currentPicUrl = uploadedUrl;
       }
-    }
 
-    // Other save logic (e.g., name/email) can be added here
-    console.log("Saved:", { name, email });
+      // 2. ส่งข้อมูลทั้งหมด (ชื่อ และ pic_url ล่าสุด) ไปที่ Backend edit
+      // แนะนำให้รวมการแก้ไข name ไว้ใน service เดียวกับ updateProfileInBackend
+      const updatedData = {
+        name: name,
+        pic_url: currentPicUrl
+      };
+
+      // เรียก service ที่เราสร้างไว้ (ต้องแน่ใจว่า service นี้ส่ง token ไปด้วย)
+      const result = await updateProfileInBackend(updatedData);
+
+      setProfile(result);
+
+      Alert.alert("สำเร็จ", "บันทึกข้อมูลเรียบร้อย");
+      setPreviewUri(null); // ล้าง preview หลังจาก save สำเร็จ
+    } catch (err) {
+      console.error('Save error:', err);
+      Alert.alert('Error', 'ไม่สามารถบันทึกข้อมูลได้');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleImagePick = async () => {
@@ -69,25 +79,21 @@ export default function Profile() {
     }
   };
 
-  useEffect(() => {
-          const loadProfile = async () => {
-              try {
-                  setLoading(true);
-                  setError("");
-  
-                  const data = await getProfileById();
-                  setProfile(data);
-                  console.log(profile);
-              } catch (err) {
-                  console.error("loadProfile error:", err);
-                  setError("โหลดรายละเอียดโปรไฟล์ไม่สำเร็จ");
-              } finally {
-                  setLoading(false);
-              }
-          };
-  
-          loadProfile();
-      }, [id]);
+    useEffect(() => {
+      const loadProfile = async () => {
+        try {
+          setLoading(true);
+          const data = await getProfileById(); // เรียกใช้ตัวที่ดึงจาก JWT
+          setProfile(data);
+          setName(data.name || ""); // <--- สำคัญ: ต้องเซ็ตค่าเริ่มต้นให้ state name
+        } catch (err) {
+          Alert.alert("Error", "โหลดรายละเอียดโปรไฟล์ไม่สำเร็จ");
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadProfile();
+    }, []);
 
   return (
     <ScrollView className="flex-1 bg-[#0D0F1F]">
@@ -118,7 +124,7 @@ export default function Profile() {
         <View className="flex flex-col gap-y-6 w-full">
           <InputField
             label="Name"
-            value={profile?.name ?? ''}
+            value={name ?? ''}
             onChangeText={(text) => setName(text)} // Native ใช้ onChangeText
             placeholder="Your name"
             placeholderTextColor="#6B7280"

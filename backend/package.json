@@ -31,17 +31,9 @@
     "class-validator": "^0.15.1",
     "dotenv": "^17.3.1",
     "nodemon": "^3.1.14",
-<<<<<<< HEAD
-<<<<<<< HEAD
     "playwright": "^1.59.1",
-=======
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
->>>>>>> 74d7461 (feat: Implement user authentication and profile management)
-=======
-    "passport": "^0.7.0",
-    "passport-jwt": "^4.0.1",
->>>>>>> 74d7461e67315f802529137643502e734619a65f
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

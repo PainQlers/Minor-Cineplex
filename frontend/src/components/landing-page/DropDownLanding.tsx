@@ -33,6 +33,7 @@ export function Dropdown({ onClose, open = false }: DropdownProps) {
             style={{ position: 'absolute', top: 56, left: 0, right: 0, transform: [{ translateY }], opacity }}
         >
             <BlurView intensity={30} tint="dark" className="w-full flex-col items-stretch" pointerEvents="box-none">
+                <View className='bg-[#070C1B] opacity-90'>
                 <Pressable
                     className="h-14 items-center mt-5 object-cover mx-4 flex-row gap-2"
                     onPress={() => {
@@ -53,6 +54,7 @@ export function Dropdown({ onClose, open = false }: DropdownProps) {
                     <NotebookPen color="#C8CEDD" size={20} />
                     <Text className="w-40 text-[#C8CEDD] font-condensedMedium text-base font-thin py-4">Register</Text>
                 </Pressable>
+                </View>
             </BlurView>
         </Animated.View>
     );
@@ -66,6 +68,11 @@ export function DropdownUser({ onClose, open = false }: DropdownProps) {
     const [error, setError] = useState("");
     const { logout } = useAuth();
     const anim = useRef(new Animated.Value(0)).current;
+
+    const handleLogout = async () => {
+        await logout(); 
+        router.push('/');
+    };
 
     useEffect(() => {
         Animated.timing(anim, {
@@ -134,10 +141,18 @@ export function DropdownUser({ onClose, open = false }: DropdownProps) {
                     className="h-20 object-cover mx-4 items-center flex-row gap-2"
                     onPress={() => {
                         onClose?.();
-                        Alert.alert('Confirm Logout', 'Are you sure you want to logout?', [
-                            { text: 'Cancel', style: 'cancel' },
-                            { text: 'Logout', style: 'destructive', onPress: () => { logout(); router.push('/'); } }
-                        ]);
+                        
+                        if (Platform.OS === 'web') {
+                            const confirmed = window.confirm('Are you sure you want to logout?');
+                            if (confirmed) {
+                                handleLogout();
+                            }
+                        } else {
+                            Alert.alert('Confirm Logout', 'Are you sure you want to logout?', [
+                                { text: 'Cancel', style: 'cancel' },
+                                { text: 'Logout', style: 'destructive', onPress: handleLogout }
+                            ]);
+                        }
                     }}
                 >
                     <LogOut color="#C8CEDD" size={20} />
@@ -147,8 +162,4 @@ export function DropdownUser({ onClose, open = false }: DropdownProps) {
             </BlurView>
         </Animated.View>
     );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 74d7461e67315f802529137643502e734619a65f

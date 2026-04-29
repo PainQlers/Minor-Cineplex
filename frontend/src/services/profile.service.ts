@@ -52,10 +52,19 @@ export async function getProfileById(): Promise<Profiles> {
 
 // frontend/src/services/profileService.ts
 
-export const uploadProfilePicture = async (userId: string, file: any) => {
+export const uploadProfilePicture = async (file: any) => {
+
+  try {
+  let token: string | null = null;
+
+    if (Platform.OS === 'web') {
+      token = localStorage.getItem('userToken');
+    } else {
+      token = await SecureStore.getItemAsync('userToken');
+    }
+
   // 1. อัปโหลดไป Storage (Frontend ทำเอง)
-  const fileExt = (file.uri || '').split('.').pop() || 'jpg';
-  const fileName = `${userId}-${Date.now()}.${fileExt}`; // ใส่ Date.now กัน Browser cache รูปเก่า
+  const fileName = `avatar-${Date.now()}.jpg`;
 
   // Convert local URI to Blob (works on web and RN fetch-compatible envs)
   const fetched = await fetch(file.uri);
@@ -63,7 +72,10 @@ export const uploadProfilePicture = async (userId: string, file: any) => {
 
   const { data, error: uploadError } = await supabase.storage
     .from('avatars')
-    .upload(fileName, blob, { upsert: true, contentType: file.type });
+    .upload(fileName, blob, { 
+      upsert: true, 
+      contentType: file.type || 'image/jpeg'
+    });
 
   if (uploadError) throw uploadError;
 
@@ -73,21 +85,32 @@ export const uploadProfilePicture = async (userId: string, file: any) => {
     .getPublicUrl(fileName);
   const publicUrl = publicData?.publicUrl || null;
 
-  // 3. ส่ง URL ไปให้ NestJS บันทึก (เรียกผ่าน API ของคุณ)
-  // สมมติว่าคุณมีฟังก์ชันสำหรับเรียก axios หรือ fetch ไปที่ NestJS
-  if (publicUrl) {
-    await updateProfileInBackend(userId, { pic_url: publicUrl });
-  }
-
   return publicUrl;
+  } catch (error) {
+    console.error('Upload Process Error:', error);
+    throw error;
+  }
 };
 
-export const updateProfileInBackend = async (userId: string, data: { pic_url: string }) => {
+export const updateProfileInBackend = async (data: { name?: string; pic_url: string | null }) => {
   try {
-    const response = await axios.patch(`${API_BASE_URL}/profiles/${userId}`, data);
+    let token: string | null = null;
+
+    if (Platform.OS === 'web') {
+      token = localStorage.getItem('userToken');
+    } else {
+      token = await SecureStore.getItemAsync('userToken');
+    }
+
+    const response = await axios.patch(`${API_BASE_URL}/auth/edit`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`, // สำคัญมาก!
+        'Content-Type': 'application/json',
+      },
+  });
     return response.data;
-  } catch (error) {
-    console.error('Update Backend Error:', error);
+  } catch (error: any) {
+    console.error('Update Backend Error:', error.response?.data || error.message);
     throw error;
   }}
 

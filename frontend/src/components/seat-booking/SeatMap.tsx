@@ -1,14 +1,6 @@
 import { useEffect, useState } from "react";
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { View, Text, Pressable } from "react-native";
-import { cn } from "../../lib/utils";
-=======
-=======
->>>>>>> 74d7461e67315f802529137643502e734619a65f
 import { View, Text, Pressable, Platform } from "react-native";
-import { cn } from "../../../lib/utils";
->>>>>>> 74d7461 (feat: Implement user authentication and profile management)
+import { cn } from "@/lib/utils";
 import SeatIcon, { SeatStatus } from "./SeatIcon";
 import { getSeatByHallId } from "@/services/seat.service";
 import { useLocalSearchParams } from "expo-router";

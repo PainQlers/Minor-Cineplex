@@ -1,18 +1,11 @@
 import React, { useEffect, useState } from 'react';
-<<<<<<< HEAD
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
-=======
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
->>>>>>> 74d7461e67315f802529137643502e734619a65f
 import Header from '../../components/sections/auth/AuthHeader';
 import FilterRow from '../../components/sections/auth/AuthFilterRow';
 import { Checkbox } from '../../components/sections/auth/AuthCheckbox';
 import SubmitButton from '../../components/sections/auth/AuthSubmitButton';
 import axios from 'axios';
-<<<<<<< HEAD
 import { useRouter } from 'expo-router';
-=======
->>>>>>> 74d7461e67315f802529137643502e734619a65f
 import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '@/context/AuthContext';
 
@@ -196,7 +189,6 @@ export default function Login() {
             <Text className="text-[#8b93b0] text-xs text-center px-1 leading-5">
                 Already have an account?
               </Text>
-<<<<<<< HEAD
               <Pressable onPress={() => Platform.select({
                 web: () => window.location.href = '/screens/Register',
                 default: () => router.push('/screens/Register')
@@ -205,12 +197,6 @@ export default function Login() {
                   Register
                 </Text>
               </Pressable>
-=======
-              <Text className="text-white text-xs text-center px-1 leading-5 underline"
-              onPress={() => router.push('/screens/Register')}>
-                Register
-              </Text>
->>>>>>> 74d7461e67315f802529137643502e734619a65f
             </View>
         </ScrollView>
       </KeyboardAvoidingView>
