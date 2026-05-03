@@ -1,11 +1,15 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { UpsertCouponDto } from './dto/upsert-coupon.dto';
 import { SupabaseService } from '@/libs/supabase/supabase.service';
 
 @Injectable()
 export class CouponsService {
-  constructor(private readonly supabaseService: SupabaseService) { }
+  constructor(private readonly supabaseService: SupabaseService) {}
 
   async create(coupon: CreateCouponDto) {
     const supabase = this.supabaseService.getClient();
@@ -34,7 +38,9 @@ export class CouponsService {
     const { data, error } = await supabase
       .from('coupons')
       .select('*')
-      .or(`title.ilike.%${keyword}%,code.ilike.%${keyword}%,short_description.ilike.%${keyword}%`)
+      .or(
+        `title.ilike.%${keyword}%,code.ilike.%${keyword}%,short_description.ilike.%${keyword}%`,
+      )
       .order('created_at', { ascending: false });
 
     if (error) {

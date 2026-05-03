@@ -14,8 +14,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: true,
       // ใส่ JWT Secret จาก Supabase Dashboard (Settings > API)
-      secretOrKey: configService.get<string>('JWT_SECRET_KEY')!.replace(/\\n/g, '\n') ,
-      algorithms: ['ES256'], 
+      secretOrKey: configService
+        .get<string>('JWT_SECRET_KEY')!
+        .replace(/\\n/g, '\n'),
+      algorithms: ['ES256'],
     });
   }
 

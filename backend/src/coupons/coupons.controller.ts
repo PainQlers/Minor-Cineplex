@@ -1,10 +1,18 @@
-import { Controller, Get, Post, Body, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { CouponsService } from './coupons.service';
 import { type CreateCouponDto } from '../../src/coupons/dto/create-coupon.dto';
 
 @Controller('coupons')
 export class CouponsController {
-  constructor(private readonly couponsService: CouponsService) { }
+  constructor(private readonly couponsService: CouponsService) {}
 
   // @Post()
   // async create(@Body() createCouponDto: CreateCouponDto) {

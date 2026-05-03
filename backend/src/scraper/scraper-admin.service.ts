@@ -321,7 +321,8 @@ export class ScraperAdminService {
 
   private compareRows(left: MovieCompareRow, right: MovieCompareRow) {
     const priorityDiff =
-      STATUS_PRIORITY[left.compareStatus] - STATUS_PRIORITY[right.compareStatus];
+      STATUS_PRIORITY[left.compareStatus] -
+      STATUS_PRIORITY[right.compareStatus];
 
     if (priorityDiff !== 0) {
       return priorityDiff;
@@ -334,7 +335,9 @@ export class ScraperAdminService {
       return rightUpdatedAt - leftUpdatedAt;
     }
 
-    return (left.snapshot.title ?? '').localeCompare(right.snapshot.title ?? '');
+    return (left.snapshot.title ?? '').localeCompare(
+      right.snapshot.title ?? '',
+    );
   }
 
   private normalize(value: unknown) {

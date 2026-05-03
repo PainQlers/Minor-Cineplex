@@ -27,7 +27,7 @@ export class BookingService {
   }
 
   findOne(id: string): Booking | undefined {
-    return this.bookings.find(b => b.id === id);
+    return this.bookings.find((b) => b.id === id);
   }
 
   update(id: string, dto: UpdateBookingDto): Booking | undefined {
@@ -40,7 +40,7 @@ export class BookingService {
 
   remove(id: string): boolean {
     const len = this.bookings.length;
-    this.bookings = this.bookings.filter(b => b.id !== id);
+    this.bookings = this.bookings.filter((b) => b.id !== id);
     return this.bookings.length < len;
   }
 }

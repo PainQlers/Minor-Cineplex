@@ -1,4 +1,10 @@
-import { Injectable, BadRequestException, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Logger,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { SupabaseService } from '@/libs/supabase/supabase.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -22,8 +28,13 @@ export class AuthService {
         .maybeSingle();
 
       if (existingError) {
-        this.logger.error('Error checking existing email:', existingError.message);
-        throw new BadRequestException(`Database error: ${existingError.message}`);
+        this.logger.error(
+          'Error checking existing email:',
+          existingError.message,
+        );
+        throw new BadRequestException(
+          `Database error: ${existingError.message}`,
+        );
       }
 
       if (existing) {
@@ -37,14 +48,22 @@ export class AuthService {
 
     try {
       this.logger.log('Starting signup for:', dto.email);
-      
-      // 🔐 1. SignUp ก่อน เพื่อให้ได้ user ID จาก auth.users
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: dto.email,
-        password: dto.password,
-      });
 
-      this.logger.log('SignUp response:', JSON.stringify({ user: signUpData?.user, error: signUpError?.message }, null, 2));
+      // 🔐 1. SignUp ก่อน เพื่อให้ได้ user ID จาก auth.users
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email: dto.email,
+          password: dto.password,
+        });
+
+      this.logger.log(
+        'SignUp response:',
+        JSON.stringify(
+          { user: signUpData?.user, error: signUpError?.message },
+          null,
+          2,
+        ),
+      );
 
       if (signUpError) {
         this.logger.error('SignUp error:', signUpError.message);
@@ -53,7 +72,9 @@ export class AuthService {
 
       if (!signUpData?.user?.id) {
         this.logger.error('SignUp succeeded but no user ID returned');
-        throw new BadRequestException('SignUp succeeded but no user ID returned');
+        throw new BadRequestException(
+          'SignUp succeeded but no user ID returned',
+        );
       }
 
       const userId = signUpData.user.id;
@@ -68,20 +89,31 @@ export class AuthService {
         .insert({ id: userId, email: dto.email, name: dto.name })
         .select();
 
-      this.logger.log('Profile insert response:', JSON.stringify({ insertedProfile, insertError }, null, 2));
+      this.logger.log(
+        'Profile insert response:',
+        JSON.stringify({ insertedProfile, insertError }, null, 2),
+      );
 
       if (insertError) {
         const msg = insertError?.message || '';
         if (msg.includes('duplicate key')) {
-          this.logger.log('Duplicate key on insert, trying update for user:', userId);
+          this.logger.log(
+            'Duplicate key on insert, trying update for user:',
+            userId,
+          );
           const { error: updateError } = await supabase
             .from('profiles')
             .update({ name: dto.name, email: dto.email })
             .eq('id', userId);
 
           if (updateError) {
-            this.logger.error('Profile update fallback error:', updateError.message);
-            throw new BadRequestException(`Database error: ${updateError.message}`);
+            this.logger.error(
+              'Profile update fallback error:',
+              updateError.message,
+            );
+            throw new BadRequestException(
+              `Database error: ${updateError.message}`,
+            );
           }
         } else {
           this.logger.error('Profile insert error:', msg);
@@ -102,7 +134,7 @@ export class AuthService {
       this.logger.error('Register error:', error);
       throw error;
     }
-  };
+  }
 
   async login(dto: LoginDto) {
     const supabase = this.supabaseService.getClient();
@@ -115,7 +147,10 @@ export class AuthService {
         password: dto.password,
       });
 
-      this.logger.log('SignIn response:', JSON.stringify({ session: data?.session, user: data?.user }, null, 2));
+      this.logger.log(
+        'SignIn response:',
+        JSON.stringify({ session: data?.session, user: data?.user }, null, 2),
+      );
 
       if (error) {
         this.logger.error('SignIn error:', error.message);
@@ -125,7 +160,8 @@ export class AuthService {
       const session = data.session;
       const user = data.user;
 
-      let profile: { id: string; email: string; name: string | null } | null = null;
+      let profile: { id: string; email: string; name: string | null } | null =
+        null;
       if (user?.id) {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -150,30 +186,30 @@ export class AuthService {
       this.logger.error('Login error:', error);
       throw error;
     }
-  };
+  }
 
-  async findOne(id: string) { // , userIdFromToken: string
-      // if (id !== userIdFromToken) {
-      //   throw new ForbiddenException('You do not have permission to view this profile');
-      // }
+  async findOne(id: string) {
+    // , userIdFromToken: string
+    // if (id !== userIdFromToken) {
+    //   throw new ForbiddenException('You do not have permission to view this profile');
+    // }
 
-      const supabase = this.supabaseService.getClient();
-      
-          const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', id)
-          .single();
-      
-          if (error) {
-            throw new NotFoundException('Profile not found');
-          }
-      
-          return data;
+    const supabase = this.supabaseService.getClient();
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      throw new NotFoundException('Profile not found');
     }
 
-  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+    return data;
+  }
 
+  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
     const supabase = this.supabaseService.getClient();
 
     const { data, error } = await supabase
@@ -186,7 +222,4 @@ export class AuthService {
     if (error) throw new Error(error.message);
     return data;
   }
-  
 }
-
-
