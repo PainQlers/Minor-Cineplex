@@ -1,4 +1,4 @@
-import { supabase } from "@/libs/supabase";
+import { supabase } from "@/lib/supabase";
 import { Profiles } from "@/types/profile";
 import axios from "axios";
 import * as SecureStore from 'expo-secure-store';
