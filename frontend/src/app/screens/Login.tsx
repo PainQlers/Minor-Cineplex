@@ -134,6 +134,7 @@ export default function Login() {
 
   return (
     <View className="flex-1 bg-[#101525]">
+
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -178,7 +179,7 @@ export default function Login() {
           </Text> */}
 
           {/* Sign in button */}
-          <SubmitButton label="Register" onPress={handleSubmit} />
+          <SubmitButton label="Login" onPress={handleSubmit} />
 
           {/* Footer links */}
           <View className="items-center mt-6 mb-4 gap-y-3 flex-row justify-center">
