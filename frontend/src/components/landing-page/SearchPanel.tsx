@@ -8,6 +8,8 @@ import { AppButton } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/icon";
 import { Movie } from "@/types/movie";
 import { getMovies } from "@/services/movie.service";
+import { getShowtimesByMovie } from "@/services/showtime.service";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface SearchSelectFieldProps {
   label: string;
@@ -31,8 +33,13 @@ export interface SearchFilters {
   releaseDate?: string;
 }
 
-const LANGUAGES = ["ENG", "TH"];
-const CITIES = ["Bangkok", "Chiang Mai", "Phuket", "Khon Kaen", "Pattaya"];
+const CITIES = [
+  "กรุงเทพมหานคร", "นนทบุรี", "ปทุมธานี", "พระนครศรีอยุธยา", "สมุทรปราการ",
+  "เชียงใหม่", "เชียงราย", "ลำพูน", "ลำปาง",
+  "ขอนแก่น", "อุดรธานี", "นครราชสีมา", "อุบลราชธานี",
+  "ภูเก็ต", "สุราษฎร์ธานี", "กระบี่", "นครศรีธรรมราช",
+  "ชลบุรี", "ระยอง", "พัทยา",
+];
 
 function SearchSelectField({
   label,
@@ -155,7 +162,20 @@ export function SearchPanel({ className, onSearch }: SearchPanelProps) {
   };
 
   const getMovieTitles = useCallback(() => {
-    return movies.map((m) => m.title);
+    // กรองเฉพาะ movie ที่ show_date อยู่ในช่วง +/- 7 วันจากวันนี้
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 7);
+    const sevenDaysLater = new Date(today);
+    sevenDaysLater.setDate(today.getDate() + 7);
+
+    const filteredMovies = movies.filter((m) => {
+      if (!m.show_date) return false;
+      const movieDate = new Date(m.show_date);
+      return movieDate >= sevenDaysAgo && movieDate <= sevenDaysLater;
+    });
+
+    return filteredMovies.map((m) => m.title);
   }, [movies]);
 
   const getGenres = useCallback(() => {
@@ -166,39 +186,105 @@ export function SearchPanel({ className, onSearch }: SearchPanelProps) {
     return Array.from(genres).sort();
   }, [movies]);
 
-  const getReleaseDates = useCallback(() => {
-    const dates = new Set<string>();
-    movies.forEach((m) => {
-      if (m.show_date) {
-        const date = new Date(m.show_date);
-        const formatted = date.toLocaleDateString("th-TH", {
-          year: "numeric",
-          month: "short",
-        });
-        dates.add(formatted);
-      }
-    });
-    return Array.from(dates).sort();
-  }, [movies]);
+  const getAvailableDates = useCallback(() => {
+    // สร้างวันที่ 14 วันล่วงหน้าจากวันนี้ (รวม today)
+    const today = new Date();
+    const dates: string[] = [];
+
+    for (let i = 0; i <= 14; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      const formatted = date.toLocaleDateString("th-TH", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+      dates.push(formatted);
+    }
+
+    return dates;
+  }, []);
 
   const openModal = (field: keyof SearchFilters, title: string, options: string[]) => {
     setModalConfig({ visible: true, title, options, field });
   };
 
-  const handleSelect = (value: string) => {
-    setFilters((prev) => ({ ...prev, [modalConfig.field]: value }));
+  const handleSelect = async (value: string) => {
+    const field = modalConfig.field;
+
+    if (field === "movie") {
+      // หา movie object จาก title ที่เลือก
+      const selectedMovie = movies.find((m) => m.title === value);
+      if (selectedMovie) {
+        // Auto-fill genre ตาม movie
+        const movieGenre = selectedMovie.genre || "";
+
+        // ดึง showtimes ของหนังเพื่อหาวันที่มีรอบฉาย
+        try {
+          const showtimes = await getShowtimesByMovie(selectedMovie.id);
+          const uniqueDates = new Set<string>();
+          showtimes.forEach((st) => {
+            const date = new Date(st.start_time);
+            const formatted = date.toLocaleDateString("th-TH", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            });
+            uniqueDates.add(formatted);
+          });
+
+          setFilters((prev) => ({
+            ...prev,
+            movie: value,
+            genre: movieGenre,
+            releaseDate: uniqueDates.size > 0 ? Array.from(uniqueDates).sort()[0] : prev.releaseDate,
+          }));
+        } catch {
+          // ถ้าดึง showtimes ไม่ได้ ใช้ show_date ของหนังแทน
+          const movieDate = selectedMovie.show_date
+            ? new Date(selectedMovie.show_date).toLocaleDateString("th-TH", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            : undefined;
+
+          setFilters((prev) => ({
+            ...prev,
+            movie: value,
+            genre: movieGenre,
+            releaseDate: movieDate || prev.releaseDate,
+          }));
+        }
+      }
+    } else {
+      setFilters((prev) => ({ ...prev, [field]: value }));
+    }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    // ถ้าไม่มี city เลือก ให้ใช้ default จาก local storage หรือ Bangkok
+    let finalCity = filters.city;
+    if (!finalCity) {
+      try {
+        const savedCity = await AsyncStorage.getItem("user_city");
+        finalCity = savedCity || "กรุงเทพมหานคร";
+      } catch {
+        finalCity = "กรุงเทพมหานคร";
+      }
+    }
+
+    const finalFilters = { ...filters, city: finalCity };
+
     if (onSearch) {
-      onSearch(filters);
+      onSearch(finalFilters);
     } else {
       const params = new URLSearchParams();
-      if (filters.movie) params.append("movie", filters.movie);
-      if (filters.language) params.append("language", filters.language);
-      if (filters.genre) params.append("genre", filters.genre);
-      if (filters.city) params.append("city", filters.city);
-      if (filters.releaseDate) params.append("releaseDate", filters.releaseDate);
+      if (finalFilters.movie) params.append("movie", finalFilters.movie);
+      if (finalFilters.language) params.append("language", finalFilters.language);
+      if (finalFilters.genre) params.append("genre", finalFilters.genre);
+      if (finalFilters.city) params.append("city", finalFilters.city);
+      if (finalFilters.releaseDate) params.append("releaseDate", finalFilters.releaseDate);
 
       const queryString = params.toString();
       const href = `/movies${queryString ? `?${queryString}` : ""}` as const;
@@ -223,20 +309,25 @@ export function SearchPanel({ className, onSearch }: SearchPanelProps) {
           />
 
           <View className="flex-row gap-3">
-            <SearchSelectField
-              label="Language"
-              placeholder="ENG/TH"
-              value={filters.language}
-              className="flex-1"
-              onPress={() => openModal("language", "Select Language", LANGUAGES)}
-            />
-            <SearchSelectField
-              label="Genre"
-              placeholder="Select Genre"
-              value={filters.genre}
-              className="flex-1"
-              onPress={() => openModal("genre", "Select Genre", getGenres())}
-            />
+            <View
+              className="h-12 flex-1 flex-row items-center justify-between rounded border border-base-gray200 bg-base-gray100 px-4"
+            >
+              <Text className="font-condensed text-body1regular text-base-dark">
+                ENG / TH
+              </Text>
+            </View>
+            <View
+              className="h-12 flex-1 flex-row items-center justify-between rounded border border-base-gray200 bg-base-gray100 px-4"
+            >
+              <Text
+                className={clsx(
+                  "font-condensed text-body1regular",
+                  filters.genre ? "text-base-dark" : "text-base-gray300"
+                )}
+              >
+                {filters.genre || "Auto from Movie"}
+              </Text>
+            </View>
           </View>
 
           <View className="flex-row gap-3">
@@ -248,12 +339,12 @@ export function SearchPanel({ className, onSearch }: SearchPanelProps) {
               onPress={() => openModal("city", "Select City", CITIES)}
             />
             <SearchSelectField
-              label="Release date"
+              label="Date"
               placeholder="Select Date"
               value={filters.releaseDate}
               icon="calendar-outline"
               className="flex-1"
-              onPress={() => openModal("releaseDate", "Select Release Date", getReleaseDates())}
+              onPress={() => openModal("releaseDate", "Select Date", getAvailableDates())}
             />
           </View>
 
