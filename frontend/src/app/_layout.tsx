@@ -33,9 +33,9 @@ export default function RootLayout() {
         ? localStorage.getItem('userToken') 
         : await SecureStore.getItemAsync('userToken');
 
-      if (!token) {
-        router.replace('/screens/Login');
-      }
+      // if (!token) {
+      //   router.replace('/screens/Login');
+      // }
     }
     checkAuth();
   }, []);

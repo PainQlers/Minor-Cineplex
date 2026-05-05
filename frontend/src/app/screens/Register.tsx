@@ -3,7 +3,6 @@ import { ScrollView, View, Text, Pressable, Platform } from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 
-import Header from '../../components/sections/auth/AuthHeader';
 import SearchBar from '../../components/sections/auth/AuthSearchBar';
 import FilterRow from '../../components/sections/auth/AuthFilterRow';
 import SubmitButton from '../../components/sections/auth/AuthSubmitButton';
@@ -112,7 +111,6 @@ const Register = () => {
 
   return (
     <View className="flex-1 bg-[#101525]">
-      <Header />
       <Text className="text-white text-4xl font-semibold mx-auto my-10">Register</Text>
 
       <ScrollView

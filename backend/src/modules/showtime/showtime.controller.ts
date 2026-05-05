@@ -9,12 +9,17 @@ import {
   Query,
 } from '@nestjs/common';
 import { ShowtimeService } from './showtime.service';
+import { ShowtimeGeneratorService } from './showtime-generator.service';
 import { CreateShowtimeDto } from './dto/create-showtime.dto';
 import { UpdateShowtimeDto } from './dto/update-showtime.dto';
+import { format, addDays } from 'date-fns';
 
 @Controller('showtime')
 export class ShowtimeController {
-  constructor(private readonly showtimeService: ShowtimeService) {}
+  constructor(
+    private readonly showtimeService: ShowtimeService,
+    private readonly generatorService: ShowtimeGeneratorService,
+  ) {}
 
   @Post()
   async create(@Body() createShowtimeDto: CreateShowtimeDto) {
@@ -63,5 +68,28 @@ export class ShowtimeController {
   @Delete(':id')
   async remove(@Param('id') id: string) {
     return this.showtimeService.remove(+id);
+  }
+
+  @Post('generate/daily')
+  async generateDaily(@Query('date') date?: string) {
+    const targetDate = date ? new Date(date) : new Date();
+    const result = await this.generatorService.generateDailyShowtimes();
+    return {
+      message: `Generated ${result.created} showtimes for 14 days ahead, deleted ${result.deleted} old showtimes`,
+      targetDate: format(addDays(targetDate, 14), 'yyyy-MM-dd'),
+      generated: result.created,
+      deleted: result.deleted,
+    };
+  }
+
+  @Post('generate/custom')
+  async manualGenerate(@Query('date') date?: string) {
+    const targetDate = date ? new Date(date) : new Date();
+    const count = await this.generatorService.manualGenerateForDate(targetDate);
+    return {
+      message: `Generated ${count} showtimes`,
+      date: targetDate,
+      generated: count,
+    };
   }
 }
