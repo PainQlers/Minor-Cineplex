@@ -112,7 +112,6 @@ const Register = () => {
 
   return (
     <View className="flex-1 bg-[#101525]">
-      <Header />
       <Text className="text-white text-4xl font-semibold mx-auto my-10">Register</Text>
 
       <ScrollView
