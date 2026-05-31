@@ -4,8 +4,8 @@ import axios from "axios";
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from "react-native";
 
-// const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+// const API_BASE_URL = 'http://localhost:3000';
 
 export async function getProfileById(): Promise<Profiles> {
 
