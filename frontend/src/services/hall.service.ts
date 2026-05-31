@@ -1,7 +1,7 @@
 import { Hall } from "@/types/hall";
 
-// const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+// const API_BASE_URL = 'http://localhost:3000';
 
 export async function getHallInfoById(id: string): Promise<Hall> {
 

@@ -1,7 +1,7 @@
 import { Seat } from "@/types/seat";
 
-// const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+// const API_BASE_URL = 'http://localhost:3000';
 
 export async function getSeatByHallId(id: string): Promise<Seat[]> {
 
