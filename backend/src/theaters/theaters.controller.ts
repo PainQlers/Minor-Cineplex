@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { TheatersService } from './theaters.service';
 import { type CreateTheaterDto } from './dto/create-theater.dto';
 import { type UpdateTheaterDto } from './dto/update-theater.dto';
@@ -7,13 +16,11 @@ import { type UpdateTheaterDto } from './dto/update-theater.dto';
 export class TheatersController {
   constructor(private readonly theatersService: TheatersService) {}
 
-
   @Get('name')
   async findByName(@Query('name') name?: string) {
     if (name) {
       return this.theatersService.findByName(name);
     }
-
   }
 
   @Get('search')

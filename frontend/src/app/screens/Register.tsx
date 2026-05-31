@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Text } from 'react-native';
+import { ScrollView, View, Text, Pressable, Platform } from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 
-import Header from '../../components/sections/auth/AuthHeader';
 import SearchBar from '../../components/sections/auth/AuthSearchBar';
 import FilterRow from '../../components/sections/auth/AuthFilterRow';
 import SubmitButton from '../../components/sections/auth/AuthSubmitButton';
@@ -32,9 +31,8 @@ const Register = () => {
     password: null,
   });
 
-  const router = useRouter();
-
   const [submitted, setSubmitted] = useState(false);
+  const router = useRouter();
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -113,7 +111,6 @@ const Register = () => {
 
   return (
     <View className="flex-1 bg-[#101525]">
-      <Header />
       <Text className="text-white text-4xl font-semibold mx-auto my-10">Register</Text>
 
       <ScrollView
@@ -146,10 +143,14 @@ const Register = () => {
             <Text className="text-[#8b93b0] text-xs text-center px-1 leading-5">
               Already have an account?
             </Text>
-            <Text className='text-white text-xs text-center px-1 leading-5 underline'
-            onPress={() => router.push('/screens/Login')}>
+            <Pressable onPress={() => Platform.select({
+              web: () => window.location.href = '/screens/Login',
+              default: () => router.push('/screens/Login')
+            })}>
+              <Text className="text-white text-xs text-center px-1 leading-5 underline">
                 Login
               </Text>
+            </Pressable>
           </View>
       </ScrollView>
     </View>

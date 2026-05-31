@@ -6,8 +6,6 @@ import { COLORS } from "../../constants/colors";
 export default function ShowcaseLayout() {
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
-
       <View style={styles.screen}>
         <View style={styles.blueGlow} />
         <View style={styles.purpleGlow} />

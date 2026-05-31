@@ -1,9 +1,11 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, Platform } from "react-native";
 import clsx from "clsx";
 import { Image } from "expo-image";
+import { BlurView } from "expo-blur";
 
 import HamburgerIcon from "@/assets/icons/hamburger.svg";
 import { AppIcon } from "./icon";
+import { useRouter } from "expo-router";
 
 const noop = () => {};
 
@@ -18,33 +20,40 @@ interface AppNavbarProps {
   logo?: React.ReactNode;
   logoLabel?: string;
   onHamburgerPress?: () => void;
-  onLogoPress?: () => void;
   showHamburger?: boolean;
   
   className?: string;
+  pointerEvents?: 'auto' | 'none' | 'box-none' | 'box-only';
 }
 
 export function AppNavbar({
   items = [],
   logo,
   onHamburgerPress = noop,
-  onLogoPress = noop,
   showHamburger = true,
   
   className,
+  pointerEvents = 'auto',
 }: AppNavbarProps) {
+  const router = useRouter();
   return (
     <View
       className={clsx(
-        "flex-1 flex-row justify-between px-4 py-2 w-full",
+        "flex-row justify-between px-4 py-2 w-full ",
         
         className
       )}
     >
-      <Text className="absolute inset-0 flex items-center justify-center bg-base-gray100 opacity-20"></Text>
+      <BlurView intensity={30} tint="dark" className="absolute inset-0" style={{ pointerEvents: 'none' }} />
       {/* Left: Logo */}
       <Pressable
-        onPress={onLogoPress}
+        onPress={() => {
+          if (Platform.OS === "web") {
+            window.location.href = "/";
+          } else {
+            router.push("/");
+          }
+        }}
         className="p-2 items-center justify-center"
       >
         {logo ? (

@@ -1,17 +1,24 @@
-import { Controller, Get, Post, Body, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { type CreateMovieDto } from './dto/create-movie.dto';
 // import { type UpdateMovieDto } from './dto/update-movie.dto';
 
 @Controller('movies')
 export class MoviesController {
-  constructor(private readonly moviesService: MoviesService) { }
+  constructor(private readonly moviesService: MoviesService) {}
 
   @Post()
   async create(@Body() createMovieDto: CreateMovieDto) {
     return this.moviesService.create(createMovieDto);
   }
-
 
   @Get('search')
   async search(@Query('q') q?: string) {
