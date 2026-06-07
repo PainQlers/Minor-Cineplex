@@ -9,10 +9,7 @@ import { AppPagination } from "@/components/ui/pagination";
 import { getTheaters } from "@/services/theater.service";
 import { Theater } from "@/types/theater";
 import DoneRoundLightIcon from "@/assets/icons/done_round_light.svg";
-import {
-  hasSeenLocationPrompt,
-  markLocationPromptSeen,
-} from "@/lib/storage";
+import { markLocationPromptSeen } from "@/lib/storage";
 
 const THEATERS_PER_PAGE = 4;
 const EARTH_RADIUS_KM = 6371;
@@ -130,21 +127,42 @@ export function TheatersSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const applyCurrentLocation = async () => {
+    const position = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.Balanced,
+    });
+
+    setUserLocation({
+      lat: position.coords.latitude,
+      lng: position.coords.longitude,
+    });
+  };
+
   useEffect(() => {
-    if (hasShownLocationPromptRef.current) {
+    if (userLocation || hasShownLocationPromptRef.current) {
       return;
     }
 
-    const checkAndShowPrompt = async () => {
-      const hasSeen = await hasSeenLocationPrompt();
-      if (!hasSeen) {
-        hasShownLocationPromptRef.current = true;
-        setIsLocationPromptVisible(true);
+    const requestLocationWhenMissing = async () => {
+      hasShownLocationPromptRef.current = true;
+
+      const permissionResult = await Location.getForegroundPermissionsAsync();
+
+      if (permissionResult.status === "granted") {
+        try {
+          await applyCurrentLocation();
+          setSortMode("nearest");
+        } catch {
+          setIsLocationPromptVisible(true);
+        }
+        return;
       }
+
+      setIsLocationPromptVisible(true);
     };
 
-    void checkAndShowPrompt();
-  }, []);
+    void requestLocationWhenMissing();
+  }, [userLocation]);
 
   useEffect(() => {
     let isMounted = true;
@@ -279,14 +297,7 @@ export function TheatersSection() {
         return;
       }
 
-      const position = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-
-      setUserLocation({
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-      });
+      await applyCurrentLocation();
       setSortMode("nearest");
       await markLocationPromptSeen();
       setIsLocationPromptVisible(false);
@@ -305,12 +316,7 @@ export function TheatersSection() {
   };
 
   const handleNearestLocationsPress = () => {
-    if (userLocation) {
-      setSortMode("nearest");
-      return;
-    }
-
-    setIsLocationPromptVisible(true);
+    setSortMode("nearest");
   };
 
   return (
@@ -321,6 +327,8 @@ export function TheatersSection() {
 
       <View className="flex-row items-center gap-1 rounded-lg bg-base-gray100 px-1">
         <Pressable
+          accessibilityLabel="Browse by City"
+          accessibilityRole="button"
           className={`my-1 flex-row items-center justify-center gap-2 rounded-md py-3 px-4 ${
             sortMode === "city" ? "bg-base-gray200 flex-1" : ""
           }`}
@@ -339,6 +347,8 @@ export function TheatersSection() {
         </Pressable>
 
         <Pressable
+          accessibilityLabel="Nearest Locations First"
+          accessibilityRole="button"
           className={`my-1 flex-row items-center justify-center rounded-md py-3 px-2 ${
             sortMode === "nearest" ? "bg-base-gray200 flex-1" : ""
           }`}
@@ -400,9 +410,15 @@ export function TheatersSection() {
 
         {!isLoading && !error && sortMode === "nearest" ? (
           <View className="mt-3 gap-3">
-            {nearestTheaters.length === 0 ? (
+            {!userLocation ? (
               <Text className="font-body text-body3 text-text-muted">
-                No nearby theaters available yet. Some locations may be missing map coordinates.
+                Location access is needed to sort cinemas by nearest location.
+                Please enable location access in your browser or app settings.
+              </Text>
+            ) : nearestTheaters.length === 0 ? (
+              <Text className="font-body text-body3 text-text-muted">
+                No nearby theaters available yet. Some locations may be missing
+                map coordinates.
               </Text>
             ) : (
               nearestTheaters.map((theater) => (
