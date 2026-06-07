@@ -73,10 +73,13 @@ export class ShowtimeController {
   @Post('generate/daily')
   async generateDaily(@Query('date') date?: string) {
     const targetDate = date ? new Date(date) : new Date();
-    const result = await this.generatorService.generateDailyShowtimes();
+    const result = await this.generatorService.generateDailyShowtimes(
+      targetDate,
+    );
     return {
-      message: `Generated ${result.created} showtimes for 14 days ahead, deleted ${result.deleted} old showtimes`,
-      targetDate: format(addDays(targetDate, 14), 'yyyy-MM-dd'),
+      message: `Generated ${result.created} showtimes for 7 days ahead, deleted ${result.deleted} existing showtimes`,
+      from: format(targetDate, 'yyyy-MM-dd'),
+      to: format(addDays(targetDate, 7), 'yyyy-MM-dd'),
       generated: result.created,
       deleted: result.deleted,
     };

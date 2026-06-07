@@ -7,14 +7,13 @@ import {
   setHours,
   setMinutes,
   format,
-  isAfter,
-  addMinutes,
   startOfDay,
   endOfDay,
 } from 'date-fns';
 
 interface Movie {
   id: string;
+  title?: string | null;
   show_date: string;
 }
 
@@ -33,31 +32,42 @@ interface Theater {
 export class ShowtimeGeneratorService {
   private readonly logger = new Logger(ShowtimeGeneratorService.name);
   private readonly PRICE = 180;
-  private readonly START_HOUR = 10;
-  private readonly END_HOUR = 22;
-  private readonly MIN_ROUNDS = 3;
-  private readonly MAX_ROUNDS = 5;
-  private readonly MIN_GAP_MINUTES = 150; // 2.5 hours
-  private readonly MAX_GAP_MINUTES = 210; // 3.5 hours
-  private readonly MINUTE_INTERVALS = [0, 15, 30, 45];
+  private readonly DAYS_AHEAD = 7;
+  private readonly RELEASE_WINDOW_DAYS = 7;
+  private readonly SHOWTIME_SLOTS = [
+    { hour: 10, minute: 30 },
+    { hour: 13, minute: 15 },
+    { hour: 16, minute: 0 },
+    { hour: 18, minute: 45 },
+    { hour: 21, minute: 30 },
+  ];
 
   constructor(private readonly supabaseService: SupabaseService) {}
 
-  async generateDailyShowtimes(): Promise<{ created: number; deleted: number }> {
-    this.logger.log('Starting daily showtime generation...');
+  async generateDailyShowtimes(
+    baseDate = new Date(),
+  ): Promise<{ created: number; deleted: number }> {
+    this.logger.log('Starting 7-day release-window showtime generation...');
 
-    const today = new Date();
-    const daysAhead = 7;  // สร้างรอบ 7 วันล่วงหน้า
+    const today = baseDate;
+    const firstDate = startOfDay(today);
+    const lastDate = endOfDay(addDays(today, this.DAYS_AHEAD));
 
     try {
-      // ลบรอบหนังเก่ากว่า 3 วัน
       const deletedCount = await this.deleteOldShowtimes();
+      const windowDeletedCount = await this.deleteShowtimesInRange(
+        firstDate,
+        lastDate,
+      );
       this.logger.log(`Deleted ${deletedCount} old showtimes`);
+      this.logger.log(
+        `Deleted ${windowDeletedCount} showtimes in active booking window`,
+      );
 
-      const activeMovies = await this.getActiveMovies();
+      const activeMovies = await this.getBookableMovies(firstDate, lastDate);
       const theaters = await this.getAllTheaters();
 
-      this.logger.log(`Found ${activeMovies.length} active movies`);
+      this.logger.log(`Found ${activeMovies.length} bookable movies`);
       this.logger.log(`Found ${theaters.length} theaters`);
 
       if (activeMovies.length === 0) {
@@ -67,27 +77,34 @@ export class ShowtimeGeneratorService {
 
       let totalCreated = 0;
 
-      // สร้างรอบสำหรับแต่ละวัน (วันนี้ถึง 7 วันล่วงหน้า)
-      for (let dayOffset = 0; dayOffset <= daysAhead; dayOffset++) {
+      for (let dayOffset = 0; dayOffset <= this.DAYS_AHEAD; dayOffset++) {
         const targetDate = addDays(today, dayOffset);
+        const eligibleMovies = this.getMoviesBookableOnDate(
+          activeMovies,
+          targetDate,
+        );
+
         this.logger.log(
-          `Generating showtimes for: ${format(targetDate, 'yyyy-MM-dd')}`,
+          `Generating showtimes for ${format(targetDate, 'yyyy-MM-dd')} with ${eligibleMovies.length} eligible movies`,
         );
 
         for (const theater of theaters) {
           const createdCount = await this.generateForTheater(
             theater,
-            activeMovies,
+            eligibleMovies,
             targetDate,
+            dayOffset,
           );
           totalCreated += createdCount;
         }
       }
 
       this.logger.log(
-        `Successfully created ${totalCreated} showtimes, deleted ${deletedCount} old showtimes`,
+        `Successfully created ${totalCreated} showtimes, deleted ${
+          deletedCount + windowDeletedCount
+        } showtimes`,
       );
-      return { created: totalCreated, deleted: deletedCount };
+      return { created: totalCreated, deleted: deletedCount + windowDeletedCount };
     } catch (error) {
       this.logger.error('Failed to generate showtimes:', error);
       throw error;
@@ -96,7 +113,7 @@ export class ShowtimeGeneratorService {
 
   private async deleteOldShowtimes(): Promise<number> {
     const supabase = this.supabaseService.getClient();
-    const cutoffDate = subDays(new Date(), 3);  // ลบรอบเก่ากว่า 3 วัน
+    const cutoffDate = startOfDay(new Date());
 
     this.logger.log(
       `Deleting showtimes older than: ${format(cutoffDate, 'yyyy-MM-dd')}`,
@@ -115,58 +132,103 @@ export class ShowtimeGeneratorService {
     return count || 0;
   }
 
-  private getClosestMovies(
-    movies: Movie[],
-    targetDate: Date,
-    limit: number,
-  ): Movie[] {
-    // เรียง movies ตามความใกล้ชิดของ show_date กับ targetDate
-    const sortedMovies = [...movies].sort((a, b) => {
-      const dateA = new Date(a.show_date).getTime();
-      const dateB = new Date(b.show_date).getTime();
-      const targetTime = targetDate.getTime();
-      const diffA = Math.abs(dateA - targetTime);
-      const diffB = Math.abs(dateB - targetTime);
-      return diffA - diffB;
-    });
+  private async deleteShowtimesInRange(from: Date, to: Date): Promise<number> {
+    const supabase = this.supabaseService.getClient();
 
-    return sortedMovies.slice(0, limit);
+    const { error, count } = await supabase
+      .from('showtimes')
+      .delete({ count: 'exact' })
+      .gte('start_time', from.toISOString())
+      .lte('start_time', to.toISOString());
+
+    if (error) {
+      this.logger.error(
+        `Failed to delete showtimes in range: ${error.message}`,
+      );
+      throw new Error(`Failed to delete showtimes in range: ${error.message}`);
+    }
+
+    return count || 0;
+  }
+
+  private getMoviesBookableOnDate(movies: Movie[], targetDate: Date): Movie[] {
+    const targetDay = startOfDay(targetDate).getTime();
+
+    return movies
+      .filter((movie) => {
+        const releaseDate = this.parseMovieReleaseDate(movie.show_date);
+
+        if (!releaseDate) {
+          return false;
+        }
+
+        const bookingStart = startOfDay(
+          subDays(releaseDate, this.RELEASE_WINDOW_DAYS),
+        ).getTime();
+        const bookingEnd = endOfDay(
+          addDays(releaseDate, this.RELEASE_WINDOW_DAYS),
+        ).getTime();
+
+        return targetDay >= bookingStart && targetDay <= bookingEnd;
+      })
+      .sort((left, right) => {
+        const leftRelease =
+          this.parseMovieReleaseDate(left.show_date)?.getTime() ?? 0;
+        const rightRelease =
+          this.parseMovieReleaseDate(right.show_date)?.getTime() ?? 0;
+        return leftRelease - rightRelease || left.id.localeCompare(right.id);
+      });
   }
 
   private async generateForTheater(
     theater: Theater,
     movies: Movie[],
     targetDate: Date,
+    dayOffset = 0,
   ): Promise<number> {
     const halls = await this.getHallsForTheater(theater.id);
 
-    // เลือก 4 movies ที่ show_date ใกล้ targetDate มากที่สุด
-    const closestMovies = this.getClosestMovies(movies, targetDate, 4);
-
-    this.logger.log(
-      `Generating for theater: ${theater.name} - ${halls.length} halls, selected ${closestMovies.length} closest movies for ${format(targetDate, 'yyyy-MM-dd')}`,
-    );
-
-    let createdCount = 0;
-    const moviesToSchedule = Math.min(closestMovies.length, halls.length);
-
-    for (let i = 0; i < moviesToSchedule; i++) {
-      const movie = closestMovies[i];
-      const hall = halls[i];
-
-      const existingCount = await this.countExistingShowtimes(hall.id, targetDate);
-      if (existingCount > 0) {
-        this.logger.log(
-          `Skipping hall ${hall.name} - already has ${existingCount} showtimes on ${format(targetDate, 'yyyy-MM-dd')}`,
-        );
-        continue;
-      }
-
-      const count = await this.createShowtimeSlots(movie.id, hall.id, targetDate);
-      createdCount += count;
+    if (halls.length === 0 || movies.length === 0) {
+      return 0;
     }
 
-    return createdCount;
+    const slots = this.getAvailableSlotsForDate(targetDate);
+    const capacity = halls.length * slots.length;
+    const scheduledMovies = this.rotateMovies(
+      movies,
+      this.getStableOffset(theater.id, dayOffset, movies.length),
+    ).slice(0, capacity);
+
+    this.logger.log(
+      `Generating for theater: ${theater.name} - ${halls.length} halls, scheduled ${scheduledMovies.length}/${movies.length} eligible movies for ${format(targetDate, 'yyyy-MM-dd')}`,
+    );
+
+    return this.createCoverageShowtimeSlots(
+      scheduledMovies,
+      halls,
+      targetDate,
+      slots,
+    );
+  }
+
+  private rotateMovies(movies: Movie[], offset: number) {
+    if (movies.length === 0) {
+      return movies;
+    }
+
+    const safeOffset = offset % movies.length;
+    return [...movies.slice(safeOffset), ...movies.slice(0, safeOffset)];
+  }
+
+  private getStableOffset(theaterId: string, dayOffset: number, modulo: number) {
+    if (modulo <= 0) {
+      return 0;
+    }
+
+    const hash = theaterId
+      .split('')
+      .reduce((total, char) => total + char.charCodeAt(0), 0);
+    return (hash + dayOffset) % modulo;
   }
 
   private async getHallsForTheater(theaterId: string): Promise<Hall[]> {
@@ -176,8 +238,7 @@ export class ShowtimeGeneratorService {
       .from('halls')
       .select('id, theater_id, name')
       .eq('theater_id', theaterId)
-      .order('name', { ascending: true })
-      .limit(4);  // ใช้แค่ 4 hall ต่อ theater
+      .order('name', { ascending: true });
 
     if (error) {
       throw new Error(`Failed to fetch halls: ${error.message}`);
@@ -186,44 +247,30 @@ export class ShowtimeGeneratorService {
     return (data as Hall[]) || [];
   }
 
-  private async countExistingShowtimes(
-    hallId: string,
+  private async createCoverageShowtimeSlots(
+    movies: Movie[],
+    halls: Hall[],
     targetDate: Date,
+    slots: typeof this.SHOWTIME_SLOTS,
   ): Promise<number> {
     const supabase = this.supabaseService.getClient();
-    const dayStart = startOfDay(targetDate);
-    const dayEnd = endOfDay(targetDate);
 
-    const { count, error } = await supabase
-      .from('showtimes')
-      .select('*', { count: 'exact', head: true })
-      .eq('halls_id', hallId)
-      .gte('start_time', dayStart.toISOString())
-      .lte('start_time', dayEnd.toISOString());
+    const records = movies.map((movie, index) => {
+      const hall = halls[index % halls.length];
+      const slot = slots[Math.floor(index / halls.length) % slots.length];
 
-    if (error) {
-      this.logger.warn(`Failed to check existing showtimes: ${error.message}`);
+      return {
+        id: randomUUID(),
+        movie_id: movie.id,
+        halls_id: hall.id,
+        start_time: this.createShowtimeAt(targetDate, slot.hour, slot.minute),
+        price: this.PRICE,
+      };
+    });
+
+    if (records.length === 0) {
       return 0;
     }
-
-    return count || 0;
-  }
-
-  private async createShowtimeSlots(
-    movieId: string,
-    hallId: string,
-    targetDate: Date,
-  ): Promise<number> {
-    const supabase = this.supabaseService.getClient();
-    const showtimes = this.generateRandomShowtimes(targetDate);
-
-    const records = showtimes.map((time) => ({
-      id: randomUUID(),
-      movie_id: movieId,
-      halls_id: hallId,
-      start_time: time,
-      price: this.PRICE,
-    }));
 
     const { error } = await supabase.from('showtimes').insert(records);
 
@@ -235,57 +282,58 @@ export class ShowtimeGeneratorService {
     return records.length;
   }
 
-  private generateRandomShowtimes(targetDate: Date): string[] {
-    const rounds = this.getRandomInt(this.MIN_ROUNDS, this.MAX_ROUNDS);
-    const showtimes: Date[] = [];
+  private getAvailableSlotsForDate(targetDate: Date) {
+    const now = new Date();
 
-    let currentTime = this.getRandomStartTime(targetDate);
-    const endLimit = setMinutes(setHours(targetDate, this.END_HOUR), 0);
-
-    for (let i = 0; i < rounds; i++) {
-      if (isAfter(currentTime, endLimit)) {
-        break;
-      }
-
-      showtimes.push(currentTime);
-
-      const gapMinutes = this.getRandomInt(
-        this.MIN_GAP_MINUTES,
-        this.MAX_GAP_MINUTES,
-      );
-      currentTime = addMinutes(currentTime, gapMinutes);
-    }
-
-    return showtimes.map((time) => format(time, "yyyy-MM-dd'T'HH:mm:ss"));
+    return this.SHOWTIME_SLOTS.filter((slot) => {
+      const showtime = setMinutes(setHours(targetDate, slot.hour), slot.minute);
+      return showtime.getTime() >= now.getTime();
+    });
   }
 
-  private getRandomStartTime(targetDate: Date): Date {
-    const baseTime = setHours(targetDate, this.START_HOUR);
-    const randomInterval =
-      this.MINUTE_INTERVALS[Math.floor(Math.random() * this.MINUTE_INTERVALS.length)];
-    return setMinutes(baseTime, randomInterval);
+  private createShowtimeAt(targetDate: Date, hour: number, minute: number) {
+    const showtime = setMinutes(setHours(targetDate, hour), minute);
+    showtime.setSeconds(0, 0);
+
+    return format(
+      showtime,
+      "yyyy-MM-dd'T'HH:mm:ss",
+    );
   }
 
-  private getRandomInt(min: number, max: number): number {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
-
-  private async getActiveMovies(): Promise<Movie[]> {
+  private async getBookableMovies(from: Date, to: Date): Promise<Movie[]> {
     const supabase = this.supabaseService.getClient();
-    const today = new Date();
-    const pastDate = subDays(today, 14);
+    const earliestReleaseDate = subDays(from, this.RELEASE_WINDOW_DAYS);
+    const latestReleaseDate = addDays(to, this.RELEASE_WINDOW_DAYS);
 
     const { data, error } = await supabase
       .from('movies')
-      .select('id, show_date')
-      .gte('show_date', format(pastDate, 'yyyy-MM-dd'))
-      .lte('show_date', format(today, 'yyyy-MM-dd'));
+      .select('id, title, show_date')
+      .or('is_active.is.null,is_active.eq.true')
+      .gte('show_date', format(earliestReleaseDate, 'yyyy-MM-dd'))
+      .lte('show_date', format(latestReleaseDate, 'yyyy-MM-dd'))
+      .order('show_date', { ascending: true });
 
     if (error) {
       throw new Error(`Failed to fetch movies: ${error.message}`);
     }
 
     return (data as Movie[]) || [];
+  }
+
+  private parseMovieReleaseDate(value?: string | null): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const [year, month, day] = value.split('T')[0].split('-').map(Number);
+
+    if (!year || !month || !day) {
+      return null;
+    }
+
+    const date = new Date(year, month - 1, day);
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   private async getAllTheaters(): Promise<Theater[]> {
@@ -301,12 +349,20 @@ export class ShowtimeGeneratorService {
   }
 
   async manualGenerateForDate(date?: Date): Promise<number> {
-    const targetDate = date ? addDays(date, 14) : addDays(new Date(), 14);
+    const targetDate = date ?? new Date();
     this.logger.log(
       `Manual generation for: ${format(targetDate, 'yyyy-MM-dd')}`,
     );
 
-    const activeMovies = await this.getActiveMovies();
+    await this.deleteShowtimesInRange(
+      startOfDay(targetDate),
+      endOfDay(targetDate),
+    );
+    const activeMovies = await this.getBookableMovies(targetDate, targetDate);
+    const eligibleMovies = this.getMoviesBookableOnDate(
+      activeMovies,
+      targetDate,
+    );
     const theaters = await this.getAllTheaters();
 
     let totalCreated = 0;
@@ -314,7 +370,7 @@ export class ShowtimeGeneratorService {
     for (const theater of theaters) {
       const createdCount = await this.generateForTheater(
         theater,
-        activeMovies,
+        eligibleMovies,
         targetDate,
       );
       totalCreated += createdCount;
